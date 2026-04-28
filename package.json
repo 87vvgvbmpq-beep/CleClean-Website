@@ -1,0 +1,12 @@
+{
+  "name": "cleclean-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check script.js && node --check netlify/functions/_booking-utils.mjs && node --check netlify/functions/create-booking.mjs && node --check netlify/functions/manage-booking.mjs && node --check netlify/functions/send-booking-reminders.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0"
+  }
+}

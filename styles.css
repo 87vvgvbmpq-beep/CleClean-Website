@@ -190,6 +190,12 @@ h3 {
   background: rgba(255, 255, 255, 0.12);
 }
 
+.button.ghost {
+  border-color: rgba(29, 95, 74, 0.38);
+  color: var(--green);
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .trust-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -322,6 +328,135 @@ h3 {
   margin: 22px 0 0;
   padding-left: 18px;
   font-weight: 700;
+}
+
+.booking-band {
+  background: #e6ebe2;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.booking-shell {
+  width: min(1180px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: clamp(64px, 9vw, 110px) 0;
+  display: grid;
+  grid-template-columns: 0.72fr 1.28fr;
+  gap: clamp(28px, 6vw, 72px);
+  align-items: start;
+}
+
+.booking-intro {
+  padding-top: 8px;
+}
+
+.booking-intro p:not(.eyebrow) {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 1.06rem;
+}
+
+.booking-form {
+  position: relative;
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid rgba(29, 95, 74, 0.18);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.booking-form label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.form-grid label > span,
+.honey-field > span {
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 0.76rem;
+}
+
+.booking-form input,
+.booking-form select,
+.booking-form textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 13px;
+  color: var(--ink);
+  background: #fbfcfa;
+  font: inherit;
+}
+
+.booking-form textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.booking-form input:focus,
+.booking-form select:focus,
+.booking-form textarea:focus {
+  outline: 3px solid rgba(216, 179, 91, 0.34);
+  border-color: var(--green);
+}
+
+.wide-field {
+  grid-column: 1 / -1;
+}
+
+.consent-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 18px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.consent-line input {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin-top: 3px;
+  accent-color: var(--green);
+}
+
+.honey-field {
+  position: absolute;
+  left: -100vw;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.form-status {
+  min-height: 24px;
+  margin: 16px 0 0;
+  color: var(--green);
+  font-weight: 800;
+}
+
+.form-status.error {
+  color: var(--red);
 }
 
 .comparison {
@@ -536,6 +671,7 @@ footer p {
   .faq-grid,
   .review-grid,
   .gallery-grid,
+  .booking-shell,
   .intro,
   .local-seo,
   .cta {
@@ -555,6 +691,10 @@ footer p {
     width: calc(100vw - 36px);
     height: 100%;
   }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 520px) {
@@ -568,12 +708,14 @@ footer p {
   }
 
   .section,
+  .booking-shell,
   .cta {
     width: min(100% - 28px, 1180px);
   }
 
   .service-card,
   .process-grid article,
+  .booking-form,
   .contact-panel {
     padding: 22px;
   }
