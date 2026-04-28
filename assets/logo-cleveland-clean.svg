@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410 300" role="img" aria-labelledby="title desc">
+  <title id="title">Cleveland Clean Car Detailing and Ceramics LLC badge logo</title>
+  <desc id="desc">Hexagon badge logo with Cleveland skyline, bridge, car silhouette, gold divider, and detailing droplet.</desc>
+  <defs>
+    <linearGradient id="silver" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.52" stop-color="#b9bebc"/>
+      <stop offset="1" stop-color="#6c7270"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(22 10)">
+    <path d="M183 0 356 63v132L183 280 10 195V63L183 0Z" fill="#075a3d"/>
+    <path d="M183 12 344 70v118L183 266 22 188V70L183 12Z" fill="url(#silver)"/>
+    <path d="M183 22 333 76v104L183 252 33 180V76L183 22Z" fill="#ffffff"/>
+
+    <path d="M48 144V92h16v-9h15v27h16V70h18v40h15V55h18v55h14V26h19v84h13V65h22v45h13V47h16v63h13V88h21v22h15V78h16v66H48Z" fill="#063d2d"/>
+    <path d="M245 143c10-26 31-40 63-43h10v11h-9c-26 2-43 13-52 32h-12Z" fill="#063d2d"/>
+    <path d="M255 126h65M266 113v30M286 107v36M306 105v38" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+
+    <path d="M36 158c22-34 60-53 113-57 66-5 119 10 159 46l31 6c10 2 17 7 20 15H35c-1-4-1-7 1-10Z" fill="#101317"/>
+    <path d="M85 138c35-19 73-25 114-17 26 5 49 16 69 34H87c-4-5-5-11-2-17Z" fill="#ffffff"/>
+    <path d="M103 139c31-13 63-15 96-8 15 3 29 9 42 17H105c-3-2-4-5-2-9Z" fill="#101317"/>
+    <path d="M211 156c31-1 61 2 89 8-31 4-63 3-96-2l7-6Z" fill="#ffffff"/>
+    <path d="M61 170c21-15 44-21 69-19 30 2 55 15 75 40h-37c-11-11-24-17-40-18-18-1-34 5-49 18H48c3-8 8-15 13-21Z" fill="#ffffff"/>
+    <path d="M222 188c9-17 24-26 45-27 22-1 40 8 53 27h-35c-6-5-13-8-21-7-9 0-16 3-21 7h-21Z" fill="#ffffff"/>
+    <path d="M68 191h257" stroke="#101317" stroke-width="8" stroke-linecap="round"/>
+
+    <rect x="-2" y="148" width="370" height="66" fill="#ffffff"/>
+    <text x="0" y="193" fill="#075a3d" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="40" font-weight="900">CLEVELAND</text>
+    <text x="226" y="193" fill="#101317" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="40" font-weight="900">CLEAN</text>
+    <line x1="22" y1="207" x2="344" y2="207" stroke="#d8b236" stroke-width="4"/>
+
+    <rect x="47" y="215" width="272" height="33" rx="16.5" fill="#ffffff" stroke="#075a3d" stroke-width="5"/>
+    <text x="183" y="238" text-anchor="middle" fill="#101317" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="800" letter-spacing="1.8">CAR DETAILING &amp; CERAMICS LLC</text>
+
+    <path d="M183 231c16 24 25 42 25 54 0 15-11 27-25 27s-25-12-25-27c0-12 9-30 25-54Z" fill="#075a3d"/>
+    <path d="M183 250c8 13 12 24 12 32 0 8-5 14-12 14s-12-6-12-14c0-8 4-19 12-32Z" fill="#ffffff"/>
+  </g>
+</svg>
