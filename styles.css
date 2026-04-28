@@ -476,55 +476,56 @@ figcaption {
 }
 
 .quote-section {
-  width: min(1180px, calc(100% - 36px));
-  margin: 0 auto;
-  padding: clamp(64px, 9vw, 110px) 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(70px, 9vw, 118px) max(18px, calc((100vw - 1180px) / 2));
+  background:
+    linear-gradient(90deg, rgba(16, 59, 48, 0.96), rgba(29, 95, 74, 0.9)),
+    url("assets/paint-gloss-detail.jpg") center / cover;
 }
 
 .quote-form {
-  width: min(100%, 900px);
+  width: min(100%, 920px);
   padding: clamp(24px, 4vw, 42px);
+  border: 1px solid rgba(216, 179, 91, 0.46);
+  border-left: 8px solid var(--gold);
   border-radius: 8px;
-  color: #fff;
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.84)),
-    linear-gradient(45deg, rgba(255, 255, 255, 0.06) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.06) 75%),
-    linear-gradient(45deg, rgba(255, 255, 255, 0.06) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.06) 75%),
-    #060606;
-  background-position: 0 0, 0 0, 24px 24px, 0 0;
-  background-size: auto, 48px 48px, 48px 48px, auto;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: var(--shadow);
 }
 
 .quote-kicker {
-  margin: 0 0 12px;
-  color: #ff2f2f;
-  font-size: 1rem;
+  margin: 0 0 10px;
+  color: var(--green);
+  font-size: 0.86rem;
   font-weight: 900;
   line-height: 1;
   text-transform: uppercase;
 }
 
 .quote-required {
-  margin: 0 0 22px;
-  color: #fff;
-  font-size: clamp(1.08rem, 2vw, 1.28rem);
-  font-weight: 800;
-  line-height: 1.18;
+  margin: 0 0 26px;
+  max-width: 680px;
+  color: var(--ink);
+  font-size: clamp(1.18rem, 2.5vw, 1.62rem);
+  font-weight: 900;
+  line-height: 1.12;
 }
 
 .quote-form label,
 .quote-form legend {
   display: block;
   margin: 18px 0 8px;
-  color: #fff;
-  font-size: 1.1rem;
+  color: var(--ink);
+  font-size: 1rem;
   font-weight: 900;
   line-height: 1.2;
 }
 
 .quote-form span {
-  color: #ff2f2f;
+  color: var(--red);
 }
 
 .quote-form input[type="text"],
@@ -532,73 +533,82 @@ figcaption {
 .quote-form input[type="email"],
 .quote-form textarea {
   width: 100%;
-  border: 2px solid transparent;
-  border-radius: 2px;
-  background: #f4f4f4;
-  color: #111;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
   font: inherit;
-  font-size: 1.05rem;
+  font-size: 1rem;
+  box-shadow: inset 0 1px 2px rgba(16, 19, 23, 0.05);
 }
 
 .quote-form input[type="text"],
 .quote-form input[type="tel"],
 .quote-form input[type="email"] {
-  min-height: 42px;
-  padding: 8px 10px;
+  min-height: 46px;
+  padding: 10px 12px;
 }
 
 .quote-form input::placeholder {
-  color: #6f7782;
+  color: #79818b;
 }
 
 .quote-form textarea {
-  min-height: 150px;
-  padding: 10px;
+  min-height: 142px;
+  padding: 12px;
   resize: vertical;
 }
 
 .quote-form input:focus,
 .quote-form textarea:focus {
-  border-color: var(--red);
-  outline: none;
+  border-color: var(--green);
+  outline: 3px solid rgba(29, 95, 74, 0.14);
 }
 
 .quote-row {
   display: grid;
-  grid-template-columns: minmax(220px, 0.48fr) minmax(220px, 0.48fr);
-  gap: 26px;
-  max-width: 760px;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 22px;
 }
 
 .quote-form fieldset {
-  margin: 18px 0 0;
-  padding: 0;
-  border: 0;
+  margin: 22px 0 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f9faf7;
 }
 
 .quote-form fieldset legend {
-  margin-bottom: 4px;
+  padding: 0 8px;
+  margin: 0;
 }
 
 .quote-form .choice {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  margin: 3px 0;
-  font-size: 1.06rem;
-  font-weight: 700;
+  gap: 9px;
+  min-height: 38px;
+  margin: 6px 8px 6px 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(29, 95, 74, 0.18);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.98rem;
+  font-weight: 800;
 }
 
 .quote-form input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   margin: 0;
-  accent-color: var(--red);
+  accent-color: var(--green);
 }
 
 .quote-submit {
-  margin-top: 22px;
-  min-width: 120px;
+  margin-top: 24px;
+  min-width: 150px;
   cursor: pointer;
   font: inherit;
 }
@@ -701,9 +711,13 @@ footer p {
   }
 
   .section,
-  .cta,
-  .quote-section {
+  .cta {
     width: min(100% - 28px, 1180px);
+  }
+
+  .quote-section {
+    padding-left: 14px;
+    padding-right: 14px;
   }
 
   .service-card,
@@ -711,5 +725,14 @@ footer p {
   .contact-panel,
   .quote-form {
     padding: 22px;
+  }
+
+  .quote-form {
+    border-left-width: 5px;
+  }
+
+  .quote-form .choice {
+    display: flex;
+    width: 100%;
   }
 }
