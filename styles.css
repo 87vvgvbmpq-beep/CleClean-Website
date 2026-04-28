@@ -475,6 +475,134 @@ figcaption {
   border-bottom: 1px solid var(--line);
 }
 
+.quote-section {
+  width: min(1180px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: clamp(64px, 9vw, 110px) 0;
+}
+
+.quote-form {
+  width: min(100%, 900px);
+  padding: clamp(24px, 4vw, 42px);
+  border-radius: 8px;
+  color: #fff;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.84)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.06) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.06) 75%),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.06) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.06) 75%),
+    #060606;
+  background-position: 0 0, 0 0, 24px 24px, 0 0;
+  background-size: auto, 48px 48px, 48px 48px, auto;
+  box-shadow: var(--shadow);
+}
+
+.quote-kicker {
+  margin: 0 0 12px;
+  color: #ff2f2f;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.quote-required {
+  margin: 0 0 22px;
+  color: #fff;
+  font-size: clamp(1.08rem, 2vw, 1.28rem);
+  font-weight: 800;
+  line-height: 1.18;
+}
+
+.quote-form label,
+.quote-form legend {
+  display: block;
+  margin: 18px 0 8px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.quote-form span {
+  color: #ff2f2f;
+}
+
+.quote-form input[type="text"],
+.quote-form input[type="tel"],
+.quote-form input[type="email"],
+.quote-form textarea {
+  width: 100%;
+  border: 2px solid transparent;
+  border-radius: 2px;
+  background: #f4f4f4;
+  color: #111;
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.quote-form input[type="text"],
+.quote-form input[type="tel"],
+.quote-form input[type="email"] {
+  min-height: 42px;
+  padding: 8px 10px;
+}
+
+.quote-form input::placeholder {
+  color: #6f7782;
+}
+
+.quote-form textarea {
+  min-height: 150px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.quote-form input:focus,
+.quote-form textarea:focus {
+  border-color: var(--red);
+  outline: none;
+}
+
+.quote-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.48fr) minmax(220px, 0.48fr);
+  gap: 26px;
+  max-width: 760px;
+}
+
+.quote-form fieldset {
+  margin: 18px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.quote-form fieldset legend {
+  margin-bottom: 4px;
+}
+
+.quote-form .choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 3px 0;
+  font-size: 1.06rem;
+  font-weight: 700;
+}
+
+.quote-form input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--red);
+}
+
+.quote-submit {
+  margin-top: 22px;
+  min-width: 120px;
+  cursor: pointer;
+  font: inherit;
+}
+
 .cta {
   width: min(1180px, calc(100% - 36px));
   margin: 0 auto;
@@ -498,6 +626,10 @@ figcaption {
 .contact-panel p {
   margin: 0 0 22px;
   color: var(--muted);
+}
+
+.contact-panel .button + .button {
+  margin-top: 10px;
 }
 
 footer {
@@ -538,7 +670,8 @@ footer p {
   .gallery-grid,
   .intro,
   .local-seo,
-  .cta {
+  .cta,
+  .quote-row {
     grid-template-columns: 1fr;
   }
 
@@ -568,13 +701,15 @@ footer p {
   }
 
   .section,
-  .cta {
+  .cta,
+  .quote-section {
     width: min(100% - 28px, 1180px);
   }
 
   .service-card,
   .process-grid article,
-  .contact-panel {
+  .contact-panel,
+  .quote-form {
     padding: 22px;
   }
 }
