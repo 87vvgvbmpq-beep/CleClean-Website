@@ -184,7 +184,7 @@
         <a href="#reviews">Reviews</a>
         <a href="#gallery">Gallery</a>
         <a href="#faq">FAQ</a>
-        <a href="#contact">Book</a>
+        <a href="#booking">Book</a>
       </nav>
     </header>
 
@@ -200,7 +200,7 @@
           <h1 id="hero-title">Cleveland mobile car detailing for clean interiors, glossy paint, and ceramic shine.</h1>
           <p class="hero-copy">Deep interior cleaning, foam washes, tire dressing, gloss enhancement, and careful finishing for daily drivers, family SUVs, and weekend cars.</p>
           <div class="hero-actions">
-            <a class="button primary" href="https://maps.app.goo.gl/yiJsZHE4osp62iV49" target="_blank" rel="noopener">Book on Google</a>
+            <a class="button primary" href="#booking">Book Now</a>
             <a class="button secondary" href="#results">See Results</a>
           </div>
         </div>
@@ -254,6 +254,81 @@
               <li>Gloss enhancement options</li>
             </ul>
           </article>
+        </div>
+      </section>
+
+      <section class="booking-band" id="booking" aria-labelledby="booking-title">
+        <div class="booking-shell">
+          <div class="booking-intro">
+            <p class="eyebrow">Book mobile detailing</p>
+            <h2 id="booking-title">Request an appointment in under a minute.</h2>
+            <p>Choose the service, vehicle, address, and best appointment window. Your request is sent to the team right away.</p>
+          </div>
+          <form class="booking-form" action="/.netlify/functions/create-booking" method="post" data-booking-form>
+            <div class="form-grid">
+              <label>
+                <span>Name</span>
+                <input type="text" name="name" autocomplete="name" required>
+              </label>
+              <label>
+                <span>Email</span>
+                <input type="email" name="email" autocomplete="email" required>
+              </label>
+              <label>
+                <span>Phone</span>
+                <input type="tel" name="phone" autocomplete="tel" required>
+              </label>
+              <label>
+                <span>Service</span>
+                <select name="service" required>
+                  <option value="">Select a service</option>
+                  <option>Interior Car Detailing</option>
+                  <option>Exterior Detailing</option>
+                  <option>Full-Service Auto Detailing</option>
+                  <option>Ceramic Services</option>
+                  <option>Carpet Shampoo</option>
+                  <option>Not Sure Yet</option>
+                </select>
+              </label>
+              <label>
+                <span>Vehicle</span>
+                <input type="text" name="vehicle" placeholder="Year, make, model" required>
+              </label>
+              <label>
+                <span>Preferred Date</span>
+                <input type="date" name="date" required data-booking-date>
+              </label>
+              <label>
+                <span>Preferred Time</span>
+                <input type="time" name="time" min="08:00" max="19:00" required>
+              </label>
+              <label>
+                <span>Street Address</span>
+                <input type="text" name="address" autocomplete="street-address" required>
+              </label>
+              <label>
+                <span>City</span>
+                <input type="text" name="city" autocomplete="address-level2" value="Cleveland" required>
+              </label>
+              <label class="wide-field">
+                <span>Notes</span>
+                <textarea name="notes" rows="4" placeholder="Stains, pet hair, garage access, water/power notes"></textarea>
+              </label>
+            </div>
+            <label class="consent-line">
+              <input type="checkbox" name="consent" required>
+              <span>I agree to be contacted about this booking request.</span>
+            </label>
+            <label class="honey-field" aria-hidden="true">
+              <span>Company</span>
+              <input type="text" name="company" tabindex="-1" autocomplete="off">
+            </label>
+            <div class="form-actions">
+              <button class="button primary" type="submit">Send Booking Request</button>
+              <a class="button ghost" href="tel:+12166591510">Call Instead</a>
+            </div>
+            <p class="form-status" role="status" aria-live="polite" data-booking-status></p>
+          </form>
         </div>
       </section>
 
@@ -354,7 +429,7 @@
           <p class="eyebrow">Service area</p>
           <h2 id="local-title">Mobile detailing for Cleveland and nearby neighborhoods.</h2>
         </div>
-        <p>Book professional mobile car detailing at home or work in Cleveland, OH. Cleveland Clean Car Detailing &amp; Ceramics LLC helps customers searching for interior detailing, exterior detailing, ceramic services, full-service auto detailing, and "car detailing near me" find a local result they can trust.</p>
+        <p>Request professional mobile car detailing at home or work in Cleveland, OH. Cleveland Clean Car Detailing &amp; Ceramics LLC helps customers searching for interior detailing, exterior detailing, ceramic services, full-service auto detailing, and "car detailing near me" find a local result they can trust.</p>
       </section>
 
       <section class="section faq" id="faq" aria-labelledby="faq-title">
@@ -381,12 +456,12 @@
       <section class="cta" id="contact" aria-labelledby="contact-title">
         <div>
           <p class="eyebrow">Ready for a cleaner car?</p>
-          <h2 id="contact-title">Call today for interior, exterior, or full-service auto detailing.</h2>
+          <h2 id="contact-title">Book interior, exterior, or full-service auto detailing.</h2>
         </div>
         <div class="contact-panel">
           <a class="phone" href="tel:+12166591510">(216) 659-1510</a>
           <p>Cleveland, OH and surrounding areas</p>
-          <a class="button primary" href="https://maps.app.goo.gl/yiJsZHE4osp62iV49" target="_blank" rel="noopener">Find Us on Google</a>
+          <a class="button primary" href="#booking">Request Appointment</a>
         </div>
       </section>
     </main>
