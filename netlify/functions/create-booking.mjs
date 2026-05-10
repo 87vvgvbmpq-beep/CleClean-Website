@@ -67,8 +67,12 @@ export default async (request) => {
     });
   } catch (error) {
     console.error("create-booking failed", error);
+    const isConfigurationError = error.message?.includes("Booking email automation is missing");
+
     return jsonResponse({
-      message: "The booking automation is not available right now."
-    }, 500);
+      message: isConfigurationError
+        ? "Online booking email is not configured yet."
+        : "The booking automation is not available right now."
+    }, isConfigurationError ? 503 : 500);
   }
 };

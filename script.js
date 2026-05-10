@@ -23,6 +23,8 @@ comparisons.forEach((comparison) => {
 });
 
 const bookingForm = document.querySelector("[data-booking-form]");
+const bookingFallbackEmail = "clecleandetailing@gmail.com";
+const bookingFallbackPhone = "(216) 659-1510";
 
 const formatDateForInput = (date) => {
   const year = date.getFullYear();
@@ -30,6 +32,26 @@ const formatDateForInput = (date) => {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+};
+
+const buildBookingEmail = (payload) => {
+  const subject = `Booking request from ${payload.name || "website visitor"}`;
+  const body = [
+    "New booking request from the Cleveland Clean website:",
+    "",
+    `Name: ${payload.name || ""}`,
+    `Email: ${payload.email || ""}`,
+    `Phone: ${payload.phone || ""}`,
+    `Service: ${payload.service || ""}`,
+    `Vehicle: ${payload.vehicle || ""}`,
+    `Preferred date: ${payload.date || ""}`,
+    `Preferred time: ${payload.time || ""}`,
+    `Address: ${payload.address || ""}`,
+    `City: ${payload.city || ""}`,
+    `Notes: ${payload.notes || "None"}`
+  ].join("\n");
+
+  return `mailto:${bookingFallbackEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 };
 
 if (bookingForm) {
@@ -80,8 +102,15 @@ if (bookingForm) {
 
       status.textContent = result.message || "Booking request sent. Cleveland Clean will follow up soon.";
     } catch (error) {
-      status.classList.add("error");
-      status.textContent = `${error.message} Please call (216) 659-1510.`;
+      const fallbackUrl = buildBookingEmail(payload);
+      status.classList.remove("error");
+      status.textContent = "Online booking needs a quick email handoff. Your email app is opening with the request filled in.";
+      window.location.href = fallbackUrl;
+
+      setTimeout(() => {
+        status.classList.add("error");
+        status.textContent = `${error.message} If your email app did not open, please call ${bookingFallbackPhone}.`;
+      }, 1200);
     } finally {
       submitButton.disabled = false;
     }
