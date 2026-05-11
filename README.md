@@ -16,8 +16,8 @@ Deploy on Netlify and set these environment variables:
 
 - `RESEND_API_KEY`: Resend API key used for transactional email.
 - `BOOKING_FROM_EMAIL`: verified sender, such as `Cleveland Clean <bookings@clevelandcleandetailing.com>`.
-- `BOOKING_ADMIN_EMAILS`: comma-separated admin inboxes. Defaults to `bookings@clevelandcleandetailing.com`.
-- `BOOKING_REPLY_TO_EMAIL`: optional inbox for customer replies. Set to `bookings@clevelandcleandetailing.com` if you want every customer reply there.
+- `BOOKING_ADMIN_EMAILS`: comma-separated admin inboxes. Set to `bookings@clevelandcleandetailing.com`.
+- `BOOKING_REPLY_TO_EMAIL`: inbox for customer replies. Set to `bookings@clevelandcleandetailing.com`.
 - `SITE_URL`: production website URL used for admin confirm/cancel links.
 - `BOOKING_TIME_ZONE`: optional; defaults to `America/New_York`.
 - `BOOKING_ADMIN_REMINDER_HOURS`: optional comma-separated reminder windows. Defaults to `24,2`.
