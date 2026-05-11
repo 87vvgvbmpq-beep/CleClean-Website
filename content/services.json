@@ -44,20 +44,6 @@
       ],
       "image": "assets/paint-gloss-detail.jpg",
       "active": true
-    },
-    {
-      "name": "Carpet Shampoo",
-      "price": "Starting at $75",
-      "duration": "1-2 hours",
-      "shortDescription": "Targeted carpet and mat cleaning for spills, grime, salt, and ground-in everyday mess.",
-      "fullDescription": "Carpet shampoo can be added to interior or full-service appointments when carpets and mats need extra attention beyond a standard vacuum.",
-      "features": [
-        "Carpet and floor mat treatment",
-        "Spot-focused cleaning",
-        "Great for winter salt and spills"
-      ],
-      "image": "assets/interior-detail-before.jpg",
-      "active": true
     }
   ]
 }
