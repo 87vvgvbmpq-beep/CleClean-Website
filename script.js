@@ -23,7 +23,7 @@ comparisons.forEach((comparison) => {
 });
 
 const bookingForm = document.querySelector("[data-booking-form]");
-const bookingFallbackEmail = "clecleandetailing@gmail.com";
+const bookingFallbackEmail = "bookings@clevelandcleandetailing.com";
 const bookingFallbackPhone = "(216) 659-1510";
 
 const formatDateForInput = (date) => {
