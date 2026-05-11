@@ -24,6 +24,10 @@ Deploy on Netlify and set these environment variables:
 - `BOOKING_CUSTOMER_FOLLOWUP_HOURS`: optional post-appointment follow-up delay. Defaults to `24`.
 - `BOOKING_REVIEW_URL`: optional Google review URL. Defaults to the existing Google Maps link.
 
+### Gmail reply setup
+
+To reply from `clecleandetailing@gmail.com` while sending as `bookings@clevelandcleandetailing.com`, add the bookings address in Gmail under Settings > See all settings > Accounts and Import > Send mail as > Add another email address. After verification, make `bookings@clevelandcleandetailing.com` the default sender or choose it from the From field before sending.
+
 Before publishing, replace these deployment values:
 
 - `sitemap.xml`: change `https://your-domain.com/` to the final website domain.
