@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Cleveland Clean Bookings</title>
+    <link rel="stylesheet" href="bookings.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/">
+        <img src="/assets/logo-cleveland-clean-badge.png" width="760" height="484" alt="Cleveland Clean logo">
+        <span>Bookings</span>
+      </a>
+      <nav>
+        <a href="/admin/">Content CMS</a>
+        <a href="/">View site</a>
+      </nav>
+    </header>
+
+    <main class="booking-admin">
+      <section class="access-panel" data-access-panel>
+        <form class="access-form" data-access-form>
+          <h1>Admin access</h1>
+          <label>
+            <span>Access code</span>
+            <input type="password" name="token" autocomplete="current-password" required autofocus>
+          </label>
+          <button type="submit">Continue</button>
+          <p class="form-note" data-access-message></p>
+        </form>
+      </section>
+
+      <section class="workspace" data-workspace hidden>
+        <section class="bookings-panel" aria-labelledby="bookings-title">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Booking requests</p>
+              <h1 id="bookings-title">Manage appointments</h1>
+            </div>
+            <button type="button" data-refresh>Refresh</button>
+          </div>
+
+          <div class="status-filters" role="tablist" aria-label="Filter bookings">
+            <button type="button" class="active" data-status-filter="all">All</button>
+            <button type="button" data-status-filter="pending">Pending</button>
+            <button type="button" data-status-filter="confirmed">Confirmed</button>
+            <button type="button" data-status-filter="declined">Declined</button>
+            <button type="button" data-status-filter="completed">Completed</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Requested</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody data-booking-rows>
+                <tr>
+                  <td colspan="4">Loading bookings...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside class="details-panel" data-details-panel aria-live="polite">
+          <div class="empty-state">
+            <h2>Select a booking</h2>
+            <p>Choose a row to open the request details.</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <div class="toast" data-toast hidden></div>
+
+    <script type="module" src="bookings.js"></script>
+  </body>
+</html>

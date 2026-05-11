@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check script.js && node --check functions/api/create-booking.js && node --check functions/api/auth.js && node --check functions/api/callback.js"
+    "check": "node --check script.js && node --check admin/bookings/bookings.js && node --check lib/booking-core.js && node --check lib/resend.js && node --check functions/api/create-booking.js && node --check \"functions/api/bookings/[[path]].js\" && node --check functions/api/auth.js && node --check functions/api/callback.js"
   }
 }

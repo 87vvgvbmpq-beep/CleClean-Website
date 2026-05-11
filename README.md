@@ -4,7 +4,7 @@ Open `index.html` in a browser to preview the site.
 
 ## Cloudflare Pages setup
 
-This site is configured for Cloudflare Pages. It is a static site with one Pages Function for booking requests.
+This site is configured for Cloudflare Pages. It is a static site with Pages Functions for the booking form, booking management API, and Decap CMS GitHub OAuth.
 
 Cloudflare Pages project settings:
 
@@ -14,7 +14,7 @@ Cloudflare Pages project settings:
 4. Use no framework preset.
 5. Use `exit 0` as the build command.
 6. Use `/` as the build output directory.
-7. Add the environment variables listed in the booking and CMS setup sections.
+7. Add the environment variables and D1 binding listed in the booking and CMS setup sections.
 8. Deploy, then connect the final custom domain under the Pages project's **Custom domains** settings.
 
 Cloudflare Pages will redeploy when commits are pushed to the connected GitHub branch.
@@ -22,6 +22,8 @@ Cloudflare Pages will redeploy when commits are pushed to the connected GitHub b
 ## Editing content in Decap CMS
 
 Services and packages live in `content/services.json` and are editable at `/admin/` after the site is deployed. The homepage loads active services from that JSON file. If the content file cannot load, the original hardcoded service cards remain visible as a fallback.
+
+Decap CMS is only for static website content. Booking requests are stored in Cloudflare D1 and managed at `/admin/bookings`; they are not written to JSON files or committed back to GitHub.
 
 The CMS is configured in `admin/config.yml` to edit `content/services.json`. The `/admin/` page injects the active site origin into Decap CMS at runtime and uses the Cloudflare Pages Functions at `/api/auth` and `/api/callback` for GitHub OAuth.
 
@@ -34,16 +36,39 @@ Each editor must log in with GitHub and have push access to this repository. Pub
 
 ## Booking setup
 
-The booking form posts to the Cloudflare Pages Function at `/api/create-booking`. That function sends the admin notification and customer confirmation through Resend.
+The booking form posts to the Cloudflare Pages Function at `/api/create-booking`. That function stores the request in Cloudflare D1 with `pending` status, then sends the admin notification and customer confirmation through Resend when Resend is configured.
 
-Set these Cloudflare Pages environment variables so booking request emails send correctly:
+Create a D1 database in Cloudflare, then bind it to this Pages project:
+
+1. In Cloudflare, go to **Workers & Pages > D1 SQL Database > Create**.
+2. Create a database, for example `cleclean-bookings`.
+3. In the Pages project, go to **Settings > Functions > D1 database bindings**.
+4. Add a binding named `BOOKINGS_DB` and select the D1 database.
+5. Open the D1 console and run the SQL in `schema/bookings.sql`.
+
+The Pages Functions also run `CREATE TABLE IF NOT EXISTS`, but running `schema/bookings.sql` once makes the setup explicit.
+
+Set these Cloudflare Pages environment variables:
 
 - `RESEND_API_KEY`: Resend API key.
 - `BOOKING_FROM_EMAIL`: sender address, for example `Cleveland Clean <bookings@clevelandcleandetailing.com>`.
 - `BOOKING_ADMIN_EMAILS`: where new requests go, for example `bookings@clevelandcleandetailing.com` or `clecleandetailing@gmail.com`.
 - `BOOKING_REPLY_TO_EMAIL`: optional customer confirmation reply-to address. Defaults to `bookings@clevelandcleandetailing.com`.
+- `BOOKING_ADMIN_TOKEN`: long private access code for `/admin/bookings` and the protected booking API.
 
 The admin notification sets the customer's email as the reply-to address, so the normal email reply button starts a response to the customer.
+
+### Booking admin
+
+Visit `/admin/bookings` after deployment and enter `BOOKING_ADMIN_TOKEN`. The booking dashboard can view all requests, filter by `pending`, `confirmed`, `declined`, or `completed`, open booking details, and update status.
+
+Protected booking API routes:
+
+- `POST /api/create-booking`: public booking form endpoint. Creates a D1 booking with `pending` status.
+- `GET /api/bookings`: protected admin endpoint. Requires `Authorization: Bearer BOOKING_ADMIN_TOKEN`.
+- `PATCH /api/bookings/:id`: protected admin endpoint. Accepts `{ "status": "pending" | "confirmed" | "declined" | "completed" }`.
+
+When an admin changes a booking to `confirmed` or `declined`, the customer is emailed through Resend using the existing booking email environment variables.
 
 ### Gmail reply setup
 
