@@ -2,7 +2,7 @@ import { getStore } from "@netlify/blobs";
 
 export const BUSINESS_NAME = "Cleveland Clean Car Detailing & Ceramics LLC";
 export const BUSINESS_PHONE = "(216) 659-1510";
-export const BUSINESS_EMAIL = "clecleandetailing@gmail.com";
+export const BUSINESS_EMAIL = "bookings@clevelandcleandetailing.com";
 export const BUSINESS_REVIEW_URL = "https://maps.app.goo.gl/yiJsZHE4osp62iV49";
 export const DEFAULT_TIME_ZONE = "America/New_York";
 
@@ -225,7 +225,7 @@ const emailLayout = (title, content) => {
     <div style="font-family: Arial, Helvetica, sans-serif; line-height: 1.55; color: #101317; max-width: 680px;">
       <h1 style="margin: 0 0 16px; color: #103b30; font-size: 28px;">${escapeHtml(title)}</h1>
       ${content}
-      <p style="margin: 28px 0 0; color: #5b6470;">${escapeHtml(BUSINESS_NAME)}<br>${escapeHtml(BUSINESS_PHONE)}</p>
+      <p style="margin: 28px 0 0; color: #5b6470;">${escapeHtml(BUSINESS_NAME)}<br>${escapeHtml(BUSINESS_PHONE)}<br>${escapeHtml(BUSINESS_EMAIL)}</p>
     </div>
   `;
 };
@@ -296,13 +296,16 @@ export const sendEmail = async ({ to, subject, html, text, replyTo, idempotencyK
 export const sendNewBookingEmails = async (booking, baseUrl) => {
   const confirmUrl = manageBookingUrl(baseUrl, booking, "confirmed");
   const cancelUrl = manageBookingUrl(baseUrl, booking, "cancelled");
+  const replyUrl = `mailto:${booking.customer.email}?subject=${encodeURIComponent(`Re: Cleveland Clean booking request for ${booking.service}`)}&body=${encodeURIComponent(`Hi ${booking.customer.name},\n\nThanks for reaching out to Cleveland Clean. `)}`;
   const adminHtml = emailLayout(
     "New booking request",
     `
       <p>A new detailing request came in from the website.</p>
       ${detailsHtml(booking)}
+      <p style="margin: 18px 0 0;">Use the reply button below, or reply to this email, to message ${escapeHtml(booking.customer.name)} directly.</p>
       <p style="margin: 22px 0 0;">
-        <a href="${confirmUrl}" style="background:#1d5f4a;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;">Confirm booking</a>
+        <a href="${escapeHtml(replyUrl)}" style="background:#2f5f9f;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;">Reply to customer</a>
+        <a href="${confirmUrl}" style="background:#1d5f4a;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;margin-left:8px;">Confirm booking</a>
         <a href="${cancelUrl}" style="background:#ad2f25;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;margin-left:8px;">Cancel request</a>
       </p>
     `
@@ -312,7 +315,7 @@ export const sendNewBookingEmails = async (booking, baseUrl) => {
     `
       <p>Thanks for requesting a mobile detail with ${escapeHtml(BUSINESS_NAME)}. The appointment below is not confirmed until our team follows up.</p>
       ${detailsHtml(booking)}
-      <p style="margin: 18px 0 0;">Reply to this email or call ${escapeHtml(BUSINESS_PHONE)} if anything needs to change.</p>
+      <p style="margin: 18px 0 0;">Reply to this email, email ${escapeHtml(BUSINESS_EMAIL)}, or call ${escapeHtml(BUSINESS_PHONE)} if you have a question or anything needs to change.</p>
     `
   );
 
@@ -320,7 +323,7 @@ export const sendNewBookingEmails = async (booking, baseUrl) => {
     to: getAdminEmails(),
     subject: `New booking request: ${booking.service}`,
     html: adminHtml,
-    text: `New booking request\n\n${detailsText(booking)}\n\nConfirm: ${confirmUrl}\nCancel: ${cancelUrl}`,
+    text: `New booking request\n\n${detailsText(booking)}\n\nReply to customer: ${replyUrl}\nOr reply to this email to message ${booking.customer.name} directly.\n\nConfirm: ${confirmUrl}\nCancel: ${cancelUrl}`,
     replyTo: booking.customer.email,
     idempotencyKey: `${booking.id}-admin-new`
   });
@@ -329,7 +332,8 @@ export const sendNewBookingEmails = async (booking, baseUrl) => {
     to: booking.customer.email,
     subject: "We received your Cleveland Clean booking request",
     html: customerHtml,
-    text: `Thanks for requesting a mobile detail with ${BUSINESS_NAME}. This appointment is not confirmed until our team follows up.\n\n${detailsText(booking)}\n\nCall ${BUSINESS_PHONE} if anything needs to change.`,
+    text: `Thanks for requesting a mobile detail with ${BUSINESS_NAME}. This appointment is not confirmed until our team follows up.\n\n${detailsText(booking)}\n\nReply to this email, email ${BUSINESS_EMAIL}, or call ${BUSINESS_PHONE} if you have a question or anything needs to change.`,
+    replyTo: getReplyToEmail(),
     idempotencyKey: `${booking.id}-customer-new`
   });
 };
@@ -338,14 +342,15 @@ export const sendStatusEmail = async (booking) => {
   const isConfirmed = booking.status === "confirmed";
   const title = isConfirmed ? "Your detailing appointment is confirmed" : "Your detailing request was cancelled";
   const statusText = isConfirmed
-    ? "Your mobile detailing appointment is confirmed. Reply to this email if anything changes before your appointment."
-    : "Your mobile detailing request was cancelled. Reply to this email or call us if you still need help booking.";
+    ? `Your mobile detailing appointment is confirmed. Reply to this email, email ${BUSINESS_EMAIL}, or call ${BUSINESS_PHONE} if you have a question before your appointment.`
+    : `Your mobile detailing request was cancelled. Reply to this email, email ${BUSINESS_EMAIL}, or call ${BUSINESS_PHONE} if you still need help booking.`;
 
   await sendEmail({
     to: booking.customer.email,
     subject: isConfirmed ? "Your Cleveland Clean appointment is confirmed" : "Your Cleveland Clean request was cancelled",
     html: emailLayout(title, `<p>${escapeHtml(statusText)}</p>${detailsHtml(booking)}`),
     text: `${statusText}\n\n${detailsText(booking)}`,
+    replyTo: getReplyToEmail(),
     idempotencyKey: `${booking.id}-customer-${booking.status}-${booking.updatedAt}`
   });
 };
@@ -357,8 +362,8 @@ export const sendAdminReminder = async (booking, hoursBefore) => {
   await sendEmail({
     to: getAdminEmails(),
     subject: `Reminder: ${booking.service} in ${pluralLabel}`,
-    html: emailLayout(`Upcoming booking in ${pluralLabel}`, `${detailsHtml(booking)}<p style="margin:18px 0 0;">Status: ${escapeHtml(booking.status)}</p>`),
-    text: `Upcoming booking in ${pluralLabel}\n\nStatus: ${booking.status}\n${detailsText(booking)}`,
+    html: emailLayout(`Upcoming booking in ${pluralLabel}`, `${detailsHtml(booking)}<p style="margin:18px 0 0;">Status: ${escapeHtml(booking.status)}</p><p>Reply to this email to message ${escapeHtml(booking.customer.name)} directly.</p>`),
+    text: `Upcoming booking in ${pluralLabel}\n\nStatus: ${booking.status}\n${detailsText(booking)}\n\nReply to this email to message ${booking.customer.name} directly.`,
     replyTo: booking.customer.email,
     idempotencyKey: `${booking.id}-admin-reminder-${hoursBefore}`
   });
@@ -375,10 +380,11 @@ export const sendCustomerFollowUp = async (booking) => {
       `
         <p>Thanks again for trusting us with your vehicle. If everything looks great, a quick Google review helps local Cleveland drivers find us.</p>
         <p><a href="${reviewUrl}" style="background:#1d5f4a;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;">Leave a Google review</a></p>
-        <p>If anything needs another look, reply to this email and we will make it right.</p>
+        <p>If anything needs another look, reply to this email, email ${escapeHtml(BUSINESS_EMAIL)}, or call ${escapeHtml(BUSINESS_PHONE)} and we will make it right.</p>
       `
     ),
-    text: `Thanks again for trusting ${BUSINESS_NAME} with your vehicle. If everything looks great, a quick Google review helps local Cleveland drivers find us: ${reviewUrl}\n\nIf anything needs another look, reply to this email and we will make it right.`,
+    text: `Thanks again for trusting ${BUSINESS_NAME} with your vehicle. If everything looks great, a quick Google review helps local Cleveland drivers find us: ${reviewUrl}\n\nIf anything needs another look, reply to this email, email ${BUSINESS_EMAIL}, or call ${BUSINESS_PHONE} and we will make it right.`,
+    replyTo: getReplyToEmail(),
     idempotencyKey: `${booking.id}-customer-follow-up`
   });
 };
