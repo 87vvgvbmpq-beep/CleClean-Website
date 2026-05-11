@@ -1,5 +1,6 @@
 const tokenKey = "clecleanBookingAdminToken";
 const statuses = ["pending", "confirmed", "declined", "completed"];
+const BOOKING_TIME_ZONE = "America/New_York";
 
 const state = {
   token: sessionStorage.getItem(tokenKey) || "",
@@ -33,25 +34,70 @@ const escapeHtml = (value) => {
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "full",
-  timeZone: "UTC"
-});
-
-const timeFormatter = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  hour12: true,
-  timeZone: "UTC"
+  timeZone: BOOKING_TIME_ZONE
 });
 
 const timestampFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "full",
   timeStyle: "short",
-  timeZone: "America/New_York"
+  timeZone: BOOKING_TIME_ZONE
+});
+
+const bookingDateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "full",
+  timeStyle: "short",
+  timeZone: BOOKING_TIME_ZONE
+});
+
+const timeZonePartsFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: BOOKING_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23"
 });
 
 const formatTimestamp = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : timestampFormatter.format(date);
+};
+
+const getTimeZoneOffsetMs = (date) => {
+  const parts = Object.fromEntries(
+    timeZonePartsFormatter.formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
+  const localAsUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second)
+  );
+
+  return localAsUtc - date.getTime();
+};
+
+const makeBookingWallTimeDate = (dateMatch, timeMatch = ["", "12", "00"]) => {
+  const localAsUtc = Date.UTC(
+    Number(dateMatch[1]),
+    Number(dateMatch[2]) - 1,
+    Number(dateMatch[3]),
+    Number(timeMatch[1]),
+    Number(timeMatch[2])
+  );
+  let utcMs = localAsUtc;
+
+  for (let index = 0; index < 3; index += 1) {
+    utcMs = localAsUtc - getTimeZoneOffsetMs(new Date(utcMs));
+  }
+
+  return new Date(utcMs);
 };
 
 const formatDateTime = (booking) => {
@@ -70,15 +116,11 @@ const formatDateTime = (booking) => {
     return [booking.date, booking.time].filter(Boolean).join(" at ");
   }
 
-  const date = new Date(Date.UTC(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]), 12));
-  const formattedDate = dateFormatter.format(date);
-
   if (!timeMatch) {
-    return formattedDate;
+    return dateFormatter.format(makeBookingWallTimeDate(dateMatch));
   }
 
-  const time = new Date(Date.UTC(2000, 0, 1, Number(timeMatch[1]), Number(timeMatch[2])));
-  return `${formattedDate} at ${timeFormatter.format(time)}`;
+  return bookingDateTimeFormatter.format(makeBookingWallTimeDate(dateMatch, timeMatch));
 };
 
 const showToast = (message, isError = false) => {
