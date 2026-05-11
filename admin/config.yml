@@ -52,7 +52,7 @@ collections:
                 widget: "boolean"
                 default: true
       - name: "appointment_booking"
-        label: "Appointment Booking"
+        label: "Availability Calendar"
         file: "content/booking.json"
         format: "json"
         fields:
@@ -60,12 +60,12 @@ collections:
             name: "appointmentScheduleUrl"
             widget: "string"
             required: false
-            hint: "Paste the public Google Calendar Appointment Schedule link after co-host availability checking is enabled."
-          - label: "Embed booking calendar"
+            hint: "Paste the public Google Calendar Appointment Schedule link after co-host availability checking is enabled. The website shows this above the request form."
+          - label: "Embed availability calendar"
             name: "embed"
             widget: "boolean"
             default: true
-            hint: "When enabled, the booking page is embedded in the site. The direct link button stays available either way."
+            hint: "When enabled, the availability calendar is embedded in the site. The direct link button stays available either way."
           - label: "Heading"
             name: "heading"
             widget: "string"

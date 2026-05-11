@@ -26,14 +26,16 @@ const servicesEndpoint = "/content/services.json";
 const appointmentSettingsEndpoint = "/content/booking.json";
 const servicesGridSelector = "[data-services-grid], .service-grid";
 const servicesSelectSelector = "[data-services-select], select[name='service']";
+const bookingForm = document.querySelector("[data-booking-form]");
+const bookingFallbackEmail = "bookings@clevelandcleandetailing.com";
 
 const defaultAppointmentSettings = {
   appointmentScheduleUrl: "",
   embed: true,
-  heading: "Choose your appointment time",
-  description: "Use the Google booking calendar to pick an open detailing appointment. Google handles the confirmation and reminder emails after you book.",
-  buttonLabel: "Open Booking Calendar",
-  statusText: "Booking calendar setup required. Add the Google Appointment Schedule link in Decap CMS."
+  heading: "Check available request times",
+  description: "Use this calendar to see when both detailers are available, then send the booking request below.",
+  buttonLabel: "Open Availability Calendar",
+  statusText: "Availability calendar setup required. Add the Google Appointment Schedule link in Decap CMS."
 };
 
 const normalizeServices = (data) => {
@@ -58,6 +60,27 @@ const appendText = (parent, tagName, text, className = "") => {
 
   parent.append(element);
   return element;
+};
+
+const buildBookingEmail = (payload) => {
+  const subject = encodeURIComponent(`Booking request from ${payload.name || "website"}`);
+  const body = encodeURIComponent([
+    "New booking request",
+    "",
+    `Name: ${payload.name || ""}`,
+    `Email: ${payload.email || ""}`,
+    `Phone: ${payload.phone || ""}`,
+    `Service: ${payload.service || ""}`,
+    `Vehicle: ${payload.vehicle || ""}`,
+    `Preferred date: ${payload.date || ""}`,
+    `Preferred time: ${payload.time || ""}`,
+    `Address: ${payload.address || ""}`,
+    `City: ${payload.city || ""}`,
+    "",
+    `Notes: ${payload.notes || ""}`
+  ].join("\n"));
+
+  return `mailto:${bookingFallbackEmail}?subject=${subject}&body=${body}`;
 };
 
 const serviceCard = (service, index) => {
@@ -174,8 +197,9 @@ const isGoogleAppointmentScheduleUrl = (value) => {
   try {
     const url = new URL(value);
 
-    return url.hostname === "calendar.google.com"
-      && url.pathname.startsWith("/calendar/appointments/schedules/");
+    return (url.hostname === "calendar.google.com"
+      && url.pathname.startsWith("/calendar/appointments/schedules/"))
+      || url.hostname === "calendar.app.google";
   } catch {
     return false;
   }
@@ -203,7 +227,7 @@ const renderAppointmentBooking = (settings) => {
   if (description) description.textContent = options.description;
 
   if (link) {
-    link.textContent = hasScheduleUrl ? options.buttonLabel : "Call to Book";
+    link.textContent = hasScheduleUrl ? options.buttonLabel : "Call to Check Availability";
     link.href = hasScheduleUrl ? options.appointmentScheduleUrl : "tel:+12166591510";
 
     if (hasScheduleUrl) {
@@ -247,6 +271,7 @@ const ensureAppointmentStyles = () => {
   const styles = document.createElement("style");
   styles.dataset.appointmentBookingStyles = "";
   styles.textContent = `
+    .booking-workflow{display:grid;gap:22px}
     .appointment-card{display:grid;gap:22px;padding:clamp(22px,4vw,34px);border:1px solid rgba(29,95,74,.18);border-radius:8px;background:var(--surface);box-shadow:var(--shadow)}
     .appointment-copy{display:grid;gap:16px}
     .appointment-copy h3,.appointment-copy p,.appointment-checks{margin:0}
@@ -279,8 +304,8 @@ const ensureAppointmentBookingPanel = () => {
     const title = intro.querySelector("h2");
     const copy = intro.querySelector("p:not(.eyebrow)");
 
-    if (title) title.textContent = "Book a time that works for both detailers.";
-    if (copy) copy.textContent = "Appointment times are managed through Google Calendar. Only times that pass the co-host availability check should appear on the booking page.";
+    if (title) title.textContent = "Request an appointment in under a minute.";
+    if (copy) copy.textContent = "Check the availability calendar for times both detailers are open, then send the booking request below.";
   }
 
   const booking = document.createElement("div");
@@ -288,16 +313,16 @@ const ensureAppointmentBookingPanel = () => {
   booking.dataset.appointmentBooking = "";
   booking.innerHTML = `
     <div class="appointment-copy">
-      <p class="eyebrow">Google Calendar booking</p>
-      <h3 data-appointment-heading>Choose your appointment time</h3>
-      <p data-appointment-description>Use the Google booking calendar to pick an open detailing appointment. Google handles the confirmation and reminder emails after you book.</p>
+      <p class="eyebrow">Availability calendar</p>
+      <h3 data-appointment-heading>Check available request times</h3>
+      <p data-appointment-description>Use this calendar to see when both detailers are available, then send the booking request below.</p>
       <ul class="appointment-checks">
-        <li>Shows bookable times from the Google Appointment Schedule.</li>
-        <li>Requires Brendon and his partner as co-hosts.</li>
-        <li>Co-host calendar availability checking must be enabled in Google Calendar.</li>
+        <li>Shows available windows from the Google Appointment Schedule.</li>
+        <li>Availability depends on Brendon and his partner being co-hosts.</li>
+        <li>Send the form below after choosing the date and time you want.</li>
       </ul>
       <div class="form-actions">
-        <a class="button primary" href="#booking" data-appointment-link target="_blank" rel="noopener">Open Booking Calendar</a>
+        <a class="button primary" href="#booking" data-appointment-link target="_blank" rel="noopener">Open Availability Calendar</a>
         <a class="button ghost" href="tel:+12166591510">Call Instead</a>
       </div>
       <p class="form-status" role="status" aria-live="polite" data-appointment-status>Booking calendar setup required. Add the Google Appointment Schedule link in Decap CMS.</p>
@@ -305,7 +330,10 @@ const ensureAppointmentBookingPanel = () => {
     <div class="appointment-frame-wrap" data-appointment-frame aria-label="Google appointment schedule"></div>
   `;
 
-  form.replaceWith(booking);
+  const workflow = document.createElement("div");
+  workflow.className = "booking-workflow";
+  form.before(workflow);
+  workflow.append(booking, form);
   ensureAppointmentStyles();
 
   return booking;
@@ -333,6 +361,66 @@ const loadAppointmentBooking = async () => {
     console.warn(error);
     renderAppointmentBooking(defaultAppointmentSettings);
   }
+};
+
+const setupBookingForm = () => {
+  if (!bookingForm) {
+    return;
+  }
+
+  const status = bookingForm.querySelector("[data-booking-status]");
+  const submitButton = bookingForm.querySelector("button[type='submit']");
+
+  bookingForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(bookingForm);
+    const payload = Object.fromEntries(formData.entries());
+
+    if (status) {
+      status.classList.remove("error");
+      status.textContent = "Sending your booking request...";
+    }
+
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
+
+    try {
+      const response = await fetch(bookingForm.action, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.message || "Booking request could not be completed.");
+      }
+
+      bookingForm.reset();
+
+      if (status) {
+        status.textContent = result.message || "Booking request sent. We will follow up to confirm the appointment.";
+      }
+    } catch (error) {
+      console.warn(error);
+
+      if (status) {
+        status.classList.add("error");
+        status.textContent = "Booking request could not be completed online. Your email app will open so you can send it directly.";
+      }
+
+      window.location.href = buildBookingEmail(payload);
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
+    }
+  });
 };
 
 const initNetlifyIdentityRedirect = () => {
@@ -363,4 +451,5 @@ const loadNetlifyIdentityWidget = () => {
 
 loadServices();
 loadAppointmentBooking();
+setupBookingForm();
 loadNetlifyIdentityWidget();

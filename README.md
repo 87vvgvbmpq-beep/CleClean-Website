@@ -6,7 +6,7 @@ Open `index.html` in a browser to preview the site.
 
 Services and packages live in `content/services.json` and are editable at `/admin/` after the site is deployed on Netlify. The homepage loads active services from that JSON file. If the content file cannot load, the original hardcoded service cards remain visible as a fallback.
 
-The Google Appointment Schedule booking link lives in `content/booking.json` and is editable in Decap under **Site Content > Appointment Booking**. Paste the public Google Calendar Appointment Schedule URL there after the schedule is created.
+The Google Appointment Schedule availability link lives in `content/booking.json` and is editable in Decap under **Site Content > Availability Calendar**. Paste the public Google Calendar Appointment Schedule URL there after the schedule is created.
 
 The CMS is configured in `admin/config.yml` to use Decap CMS with Netlify Identity and Git Gateway:
 
@@ -14,7 +14,7 @@ The CMS is configured in `admin/config.yml` to use Decap CMS with Netlify Identi
 2. Enable Identity, then set registration to **Invite only** unless you intentionally want open registration.
 3. Under Identity services, enable **Git Gateway** and connect it to this GitHub repository.
 4. Invite editor users from the Identity panel.
-5. Visit `/admin/`, log in, edit **Site Content > Services and Packages** or **Appointment Booking**, and publish.
+5. Visit `/admin/`, log in, edit **Site Content > Services and Packages** or **Availability Calendar**, and publish.
 
 Published CMS edits commit to the `main` branch through Git Gateway. Because the site is connected to GitHub on Netlify, each CMS commit triggers a normal Netlify redeploy.
 
@@ -31,7 +31,7 @@ The direct GitHub backend requires each editor to log in with GitHub and have wr
 
 ## Booking setup
 
-The website no longer uses custom Netlify Functions, service-account credentials, or Resend to book detailing appointments. The booking section embeds or links to a Google Calendar Appointment Schedule instead.
+The booking section shows a Google Calendar Appointment Schedule for availability, then keeps the website's booking request form underneath it. Customers use the calendar to find a time that should work for both detailers, then submit the request form. The form sends the request through the Netlify Function at `/.netlify/functions/create-booking` using Resend.
 
 Set up the schedule in Google Calendar:
 
@@ -39,11 +39,20 @@ Set up the schedule in Google Calendar:
 2. Add Brendon's partner under **Co-hosts**.
 3. Under **Calendars**, turn on **Check calendars for availability**.
 4. Include the co-host calendars in the availability check. Google notes that co-host availability is not checked by default, so this must be enabled explicitly.
-5. Configure the Google booking form, confirmation emails, and reminders inside the Appointment Schedule settings.
+5. Configure the Google Appointment Schedule so the public calendar only shows times that both detailers can take.
 6. In Google Calendar, open the schedule's sharing options and copy either the booking page link or the inline booking page embed URL.
 7. Paste the public appointment schedule URL into `content/booking.json`, or update it through `/admin/` in Decap CMS.
 
-After this is configured, the website only sends customers into Google Calendar's booking page. The actual rule that both Brendon and his partner must be available is enforced by Google Appointment Schedule co-host availability checking, not by custom website code.
+After this is configured, the website displays the Google availability calendar above the request form. The actual rule that both Brendon and his partner must be available is enforced by Google Appointment Schedule co-host availability checking, not by custom website code.
+
+Set these Netlify environment variables so booking request emails send correctly:
+
+- `RESEND_API_KEY`: Resend API key.
+- `BOOKING_FROM_EMAIL`: sender address, for example `Cleveland Clean <bookings@clevelandcleandetailing.com>`.
+- `BOOKING_ADMIN_EMAILS`: where new requests go, for example `bookings@clevelandcleandetailing.com` or `clecleandetailing@gmail.com`.
+- `BOOKING_REPLY_TO_EMAIL`: optional customer confirmation reply-to address. Defaults to `bookings@clevelandcleandetailing.com`.
+
+The admin notification sets the customer's email as the reply-to address, so the normal email reply button starts a response to the customer.
 
 ### Gmail reply setup
 
