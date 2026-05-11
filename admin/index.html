@@ -5,9 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>Cleveland Clean Content Manager</title>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
   <body>
+    <script>
+      window.CMS_MANUAL_INIT = true;
+    </script>
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <script>
+      const initDecap = window.initCMS || (window.CMS && window.CMS.init);
+
+      initDecap({
+        config: {
+          backend: {
+            name: "github",
+            repo: "87vvgvbmpq-beep/CleClean-Website",
+            branch: "main",
+            base_url: window.location.origin,
+            auth_endpoint: "api/auth"
+          }
+        }
+      });
+    </script>
   </body>
 </html>

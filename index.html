@@ -164,7 +164,7 @@
                 "name": "Do you offer exterior detailing and ceramic services?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Yes. Exterior services include foam washing, wheels and tires, bug and grime removal, glass, gloss enhancement, and ceramic service options."
+                  "text": "Yes. Exterior services include foam washing, wheels, tires, bug and grime removal, glass, gloss enhancement, and ceramic service options."
                 }
               }
             ]
@@ -226,7 +226,7 @@
           <p class="eyebrow">Auto detailing services</p>
           <h2 id="services-title">Packages for the mess you actually have.</h2>
         </div>
-        <div class="service-grid">
+        <div class="service-grid" data-services-grid>
           <article class="service-card">
             <h3>Interior Car Detailing</h3>
             <p>Vacuuming, crevice cleaning, carpet and mat attention, seat cleaning, dashboard wipe-down, vents, cup holders, and interior glass.</p>
@@ -264,7 +264,7 @@
             <h2 id="booking-title">Request an appointment in under a minute.</h2>
             <p>Choose the service, vehicle, address, and best appointment window. Your request is sent to the team right away.</p>
           </div>
-          <form class="booking-form" action="/.netlify/functions/create-booking" method="post" data-booking-form>
+          <form class="booking-form" action="/api/create-booking" method="post" data-booking-form>
             <div class="form-grid">
               <label>
                 <span>Name</span>

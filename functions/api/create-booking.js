@@ -9,11 +9,12 @@ const responseHeaders = {
   "Content-Type": "application/json"
 };
 
-const jsonResponse = (statusCode, body) => ({
-  statusCode,
-  headers: responseHeaders,
-  body: JSON.stringify(body)
-});
+const jsonResponse = (body, status = 200) => {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: responseHeaders
+  });
+};
 
 const cleanText = (value, maxLength = 160) => {
   return String(value || "")
@@ -48,24 +49,21 @@ const splitEmails = (value) => {
     .filter(Boolean);
 };
 
-const getHeader = (headers, name) => {
-  const normalized = name.toLowerCase();
-  const key = Object.keys(headers || {}).find((item) => item.toLowerCase() === normalized);
-  return key ? headers[key] : "";
-};
-
-const readRequestData = (event) => {
-  const contentType = getHeader(event.headers, "content-type");
-  const rawBody = event.isBase64Encoded
-    ? Buffer.from(event.body || "", "base64").toString("utf8")
-    : event.body || "";
+const readRequestData = async (request) => {
+  const contentType = request.headers.get("content-type") || "";
 
   if (contentType.includes("application/json")) {
-    return JSON.parse(rawBody || "{}");
+    return request.json();
   }
 
   if (contentType.includes("application/x-www-form-urlencoded")) {
-    return Object.fromEntries(new URLSearchParams(rawBody));
+    const body = await request.text();
+    return Object.fromEntries(new URLSearchParams(body));
+  }
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    return Object.fromEntries(formData.entries());
   }
 
   return {};
@@ -167,11 +165,11 @@ const customerHtml = (booking) => `
   </div>
 `;
 
-const sendEmail = async ({ to, from, replyTo, subject, text, html }) => {
+const sendEmail = async (apiKey, { to, from, replyTo, subject, text, html }) => {
   const response = await fetch(RESEND_ENDPOINT, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
@@ -190,71 +188,78 @@ const sendEmail = async ({ to, from, replyTo, subject, text, html }) => {
   }
 };
 
-export const handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") {
-    return jsonResponse(204, {});
+const handleBookingRequest = async (request, env) => {
+  const data = await readRequestData(request);
+
+  if (cleanText(data.company)) {
+    return jsonResponse({
+      message: "Booking request sent. We will follow up to confirm the appointment."
+    });
   }
 
-  if (event.httpMethod !== "POST") {
-    return jsonResponse(405, { message: "Method not allowed." });
+  const { booking, errors } = normalizeBooking(data);
+
+  if (errors.length) {
+    return jsonResponse({ message: errors.join(" ") }, 400);
+  }
+
+  if (!env.RESEND_API_KEY) {
+    return jsonResponse({
+      message: "Online booking email is not configured yet."
+    }, 503);
+  }
+
+  const from = env.BOOKING_FROM_EMAIL || `Cleveland Clean <${BUSINESS_EMAIL}>`;
+  const adminRecipients = splitEmails(env.BOOKING_ADMIN_EMAILS || env.BOOKING_TO_EMAIL);
+  const businessReplyTo = env.BOOKING_REPLY_TO_EMAIL || BUSINESS_EMAIL;
+  const subjectDate = booking.date ? ` for ${booking.date}` : "";
+
+  await sendEmail(env.RESEND_API_KEY, {
+    from,
+    to: adminRecipients,
+    replyTo: booking.email,
+    subject: `New booking request${subjectDate}: ${booking.name}`,
+    text: textSummary(booking),
+    html: adminHtml(booking)
+  });
+
+  await sendEmail(env.RESEND_API_KEY, {
+    from,
+    to: [booking.email],
+    replyTo: businessReplyTo,
+    subject: "We received your Cleveland Clean booking request",
+    text: [
+      `Thanks, ${booking.name}. We received your booking request.`,
+      `Requested time: ${booking.date} at ${booking.time}`,
+      `Service: ${booking.service}`,
+      `Reply to this email or call ${BUSINESS_PHONE} if you need to change anything.`
+    ].join("\n"),
+    html: customerHtml(booking)
+  });
+
+  return jsonResponse({
+    message: "Booking request sent. We will follow up to confirm the appointment."
+  });
+};
+
+export const onRequest = async ({ request, env }) => {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: responseHeaders
+    });
+  }
+
+  if (request.method !== "POST") {
+    return jsonResponse({ message: "Method not allowed." }, 405);
   }
 
   try {
-    const data = readRequestData(event);
-
-    if (cleanText(data.company)) {
-      return jsonResponse(200, {
-        message: "Booking request sent. We will follow up to confirm the appointment."
-      });
-    }
-
-    const { booking, errors } = normalizeBooking(data);
-
-    if (errors.length) {
-      return jsonResponse(400, { message: errors.join(" ") });
-    }
-
-    if (!process.env.RESEND_API_KEY) {
-      return jsonResponse(503, {
-        message: "Online booking email is not configured yet."
-      });
-    }
-
-    const from = process.env.BOOKING_FROM_EMAIL || `Cleveland Clean <${BUSINESS_EMAIL}>`;
-    const adminRecipients = splitEmails(process.env.BOOKING_ADMIN_EMAILS || process.env.BOOKING_TO_EMAIL);
-    const businessReplyTo = process.env.BOOKING_REPLY_TO_EMAIL || BUSINESS_EMAIL;
-    const subjectDate = booking.date ? ` for ${booking.date}` : "";
-
-    await sendEmail({
-      from,
-      to: adminRecipients,
-      replyTo: booking.email,
-      subject: `New booking request${subjectDate}: ${booking.name}`,
-      text: textSummary(booking),
-      html: adminHtml(booking)
-    });
-
-    await sendEmail({
-      from,
-      to: [booking.email],
-      replyTo: businessReplyTo,
-      subject: "We received your Cleveland Clean booking request",
-      text: [
-        `Thanks, ${booking.name}. We received your booking request.`,
-        `Requested time: ${booking.date} at ${booking.time}`,
-        `Service: ${booking.service}`,
-        `Reply to this email or call ${BUSINESS_PHONE} if you need to change anything.`
-      ].join("\n"),
-      html: customerHtml(booking)
-    });
-
-    return jsonResponse(200, {
-      message: "Booking request sent. We will follow up to confirm the appointment."
-    });
+    return await handleBookingRequest(request, env);
   } catch (error) {
     console.error(error);
-    return jsonResponse(500, {
+    return jsonResponse({
       message: "Booking request could not be completed. Please call or email us directly."
-    });
+    }, 500);
   }
 };

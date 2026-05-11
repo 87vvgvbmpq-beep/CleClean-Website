@@ -1,8 +1,0 @@
-{
-  "appointmentScheduleUrl": "https://calendar.app.google/VAf4XrEemXc9YFDb7",
-  "embed": true,
-  "heading": "Check available request times",
-  "description": "Use this calendar to see when both detailers are available, then send the booking request below.",
-  "buttonLabel": "Open Availability Calendar",
-  "statusText": "Only times that pass Brendon and his partner's co-host availability check should appear here."
-}

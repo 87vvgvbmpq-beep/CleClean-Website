@@ -2,50 +2,41 @@
 
 Open `index.html` in a browser to preview the site.
 
+## Cloudflare Pages setup
+
+This site is configured for Cloudflare Pages. It is a static site with one Pages Function for booking requests.
+
+Cloudflare Pages project settings:
+
+1. In Cloudflare, go to **Workers & Pages > Create application > Pages > Connect to Git**.
+2. Select `87vvgvbmpq-beep/CleClean-Website`.
+3. Use `main` as the production branch.
+4. Use no framework preset.
+5. Use `exit 0` as the build command.
+6. Use `/` as the build output directory.
+7. Add the environment variables listed in the booking and CMS setup sections.
+8. Deploy, then connect the final custom domain under the Pages project's **Custom domains** settings.
+
+Cloudflare Pages will redeploy when commits are pushed to the connected GitHub branch.
+
 ## Editing content in Decap CMS
 
-Services and packages live in `content/services.json` and are editable at `/admin/` after the site is deployed on Netlify. The homepage loads active services from that JSON file. If the content file cannot load, the original hardcoded service cards remain visible as a fallback.
+Services and packages live in `content/services.json` and are editable at `/admin/` after the site is deployed. The homepage loads active services from that JSON file. If the content file cannot load, the original hardcoded service cards remain visible as a fallback.
 
-The Google Appointment Schedule availability link lives in `content/booking.json` and is editable in Decap under **Site Content > Availability Calendar**. Paste the public Google Calendar Appointment Schedule URL there after the schedule is created.
+The CMS is configured in `admin/config.yml` to edit `content/services.json`. The `/admin/` page injects the active site origin into Decap CMS at runtime and uses the Cloudflare Pages Functions at `/api/auth` and `/api/callback` for GitHub OAuth.
 
-The CMS is configured in `admin/config.yml` to use Decap CMS with Netlify Identity and Git Gateway:
+Create a GitHub OAuth App under GitHub **Settings > Developer settings > OAuth Apps**. Use the Cloudflare Pages site URL as the homepage URL and `https://your-domain.com/api/callback` as the authorization callback URL. Then add these Cloudflare Pages environment variables:
 
-1. In Netlify, open the site dashboard and go to **Integrations > Identity > Netlify Identity**.
-2. Enable Identity, then set registration to **Invite only** unless you intentionally want open registration.
-3. Under Identity services, enable **Git Gateway** and connect it to this GitHub repository.
-4. Invite editor users from the Identity panel.
-5. Visit `/admin/`, log in, edit **Site Content > Services and Packages** or **Availability Calendar**, and publish.
+- `GITHUB_CLIENT_ID`: GitHub OAuth App client ID.
+- `GITHUB_CLIENT_SECRET`: GitHub OAuth App client secret.
 
-Published CMS edits commit to the `main` branch through Git Gateway. Because the site is connected to GitHub on Netlify, each CMS commit triggers a normal Netlify redeploy.
-
-If you prefer direct GitHub login instead, replace the `backend` block in `admin/config.yml` with:
-
-```yml
-backend:
-  name: github
-  repo: 87vvgvbmpq-beep/CleClean-Website
-  branch: main
-```
-
-The direct GitHub backend requires each editor to log in with GitHub and have write access to the repository. Git Gateway is the recommended setup when you want to invite editors without giving them direct GitHub repository access.
+Each editor must log in with GitHub and have push access to this repository. Published CMS edits commit to the `main` branch and trigger a Cloudflare Pages redeploy.
 
 ## Booking setup
 
-The booking section shows a Google Calendar Appointment Schedule for availability, then keeps the website's booking request form underneath it. Customers use the calendar to find a time that should work for both detailers, then submit the request form. The form sends the request through the Netlify Function at `/.netlify/functions/create-booking` using Resend.
+The booking form posts to the Cloudflare Pages Function at `/api/create-booking`. That function sends the admin notification and customer confirmation through Resend.
 
-Set up the schedule in Google Calendar:
-
-1. On a computer, open Google Calendar and create or edit an **Appointment schedule**.
-2. Add Brendon's partner under **Co-hosts**.
-3. Under **Calendars**, turn on **Check calendars for availability**.
-4. Include the co-host calendars in the availability check. Google notes that co-host availability is not checked by default, so this must be enabled explicitly.
-5. Configure the Google Appointment Schedule so the public calendar only shows times that both detailers can take.
-6. In Google Calendar, open the schedule's sharing options and copy either the booking page link or the inline booking page embed URL.
-7. Paste the public appointment schedule URL into `content/booking.json`, or update it through `/admin/` in Decap CMS.
-
-After this is configured, the website displays the Google availability calendar above the request form. The actual rule that both Brendon and his partner must be available is enforced by Google Appointment Schedule co-host availability checking, not by custom website code.
-
-Set these Netlify environment variables so booking request emails send correctly:
+Set these Cloudflare Pages environment variables so booking request emails send correctly:
 
 - `RESEND_API_KEY`: Resend API key.
 - `BOOKING_FROM_EMAIL`: sender address, for example `Cleveland Clean <bookings@clevelandcleandetailing.com>`.

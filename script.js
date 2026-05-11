@@ -243,32 +243,5 @@ const setupBookingForm = () => {
   });
 };
 
-const initNetlifyIdentityRedirect = () => {
-  if (!window.netlifyIdentity) {
-    return;
-  }
-
-  window.netlifyIdentity.on("init", (user) => {
-    if (!user) {
-      window.netlifyIdentity.on("login", () => {
-        document.location.href = "/admin/";
-      });
-    }
-  });
-};
-
-const loadNetlifyIdentityWidget = () => {
-  if (window.netlifyIdentity) {
-    initNetlifyIdentityRedirect();
-    return;
-  }
-
-  const script = document.createElement("script");
-  script.src = "https://identity.netlify.com/v1/netlify-identity-widget.js";
-  script.onload = initNetlifyIdentityRedirect;
-  document.head.append(script);
-};
-
 loadServices();
 setupBookingForm();
-loadNetlifyIdentityWidget();

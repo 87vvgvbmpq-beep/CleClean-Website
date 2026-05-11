@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check script.js && node --check netlify/functions/create-booking.mjs"
+    "check": "node --check script.js && node --check functions/api/create-booking.js && node --check functions/api/auth.js && node --check functions/api/callback.js"
   }
 }
