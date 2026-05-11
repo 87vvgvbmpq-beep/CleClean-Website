@@ -6,11 +6,13 @@ Open `index.html` in a browser to preview the site.
 
 The booking form posts to Netlify Functions and uses Netlify Blobs to store appointment requests. It sends:
 
-- an immediate booking request email to admins
-- an immediate request follow-up to the customer
+- available appointment times from the Google Calendar named `Detailing`
+- immediate confirmed-booking emails to admins and the customer
 - customer confirmation/cancellation emails from admin email links
 - hourly admin reminders for upcoming bookings
 - a post-service customer review follow-up after confirmed appointments
+
+Create availability in Google Calendar by adding timed events on the `Detailing` calendar with titles that start with `Available.`. When a customer books a slot, the function changes that event title to `Booked - [customer name]` by default.
 
 Deploy on Netlify and set these environment variables:
 
@@ -23,6 +25,15 @@ Deploy on Netlify and set these environment variables:
 - `BOOKING_ADMIN_REMINDER_HOURS`: optional comma-separated reminder windows. Defaults to `24,2`.
 - `BOOKING_CUSTOMER_FOLLOWUP_HOURS`: optional post-appointment follow-up delay. Defaults to `24`.
 - `BOOKING_REVIEW_URL`: optional Google review URL. Defaults to the existing Google Maps link.
+- `GOOGLE_SERVICE_ACCOUNT_EMAIL`: Google service account client email.
+- `GOOGLE_PRIVATE_KEY`: Google service account private key. Keep the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines; Netlify can store newlines or escaped `\n` line breaks.
+- `GOOGLE_CALENDAR_NAME`: optional Google Calendar name. Defaults to `Detailing`.
+- `GOOGLE_CALENDAR_ID`: optional calendar ID override if the service account cannot find the calendar by name.
+- `GOOGLE_AVAILABLE_EVENT_PREFIX`: optional title prefix for open slots. Defaults to `Available.`.
+- `GOOGLE_BOOKING_LOOKAHEAD_DAYS`: optional number of days to show availability. Defaults to `30`.
+- `GOOGLE_BOOKING_EVENT_ACTION`: optional; use `update` to rename the availability event or `delete` to remove it after booking. Defaults to `update`.
+
+Share the `Detailing` Google Calendar with the service account email and grant permission to make changes to events.
 
 ### Gmail reply setup
 
