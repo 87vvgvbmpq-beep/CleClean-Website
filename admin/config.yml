@@ -1,0 +1,53 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
+
+collections:
+  - name: "site_content"
+    label: "Site Content"
+    files:
+      - name: "services"
+        label: "Services and Packages"
+        file: "content/services.json"
+        format: "json"
+        fields:
+          - label: "Services and packages"
+            name: "services"
+            widget: "list"
+            summary: "{{fields.name}} - {{fields.price}}"
+            fields:
+              - label: "Service name"
+                name: "name"
+                widget: "string"
+              - label: "Price"
+                name: "price"
+                widget: "string"
+                required: false
+              - label: "Duration"
+                name: "duration"
+                widget: "string"
+                required: false
+              - label: "Short description"
+                name: "shortDescription"
+                widget: "text"
+              - label: "Full description"
+                name: "fullDescription"
+                widget: "text"
+              - label: "Included features"
+                name: "features"
+                widget: "list"
+                field:
+                  label: "Feature"
+                  name: "feature"
+                  widget: "string"
+              - label: "Image"
+                name: "image"
+                widget: "image"
+                required: false
+              - label: "Active"
+                name: "active"
+                widget: "boolean"
+                default: true

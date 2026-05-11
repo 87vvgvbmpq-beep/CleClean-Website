@@ -2,6 +2,31 @@
 
 Open `index.html` in a browser to preview the site.
 
+## Editing services in Decap CMS
+
+Services and packages live in `content/services.json` and are editable at `/admin/` after the site is deployed on Netlify. The homepage loads active services from that JSON file and uses the same list for the booking form service dropdown. If the content file cannot load, the original hardcoded service cards remain visible as a fallback.
+
+The CMS is configured in `admin/config.yml` to use Decap CMS with Netlify Identity and Git Gateway:
+
+1. In Netlify, open the site dashboard and go to **Integrations > Identity > Netlify Identity**.
+2. Enable Identity, then set registration to **Invite only** unless you intentionally want open registration.
+3. Under Identity services, enable **Git Gateway** and connect it to this GitHub repository.
+4. Invite editor users from the Identity panel.
+5. Visit `/admin/`, log in, edit **Site Content > Services and Packages**, and publish.
+
+Published CMS edits commit to the `main` branch through Git Gateway. Because the site is connected to GitHub on Netlify, each CMS commit triggers a normal Netlify redeploy.
+
+If you prefer direct GitHub login instead, replace the `backend` block in `admin/config.yml` with:
+
+```yml
+backend:
+  name: github
+  repo: 87vvgvbmpq-beep/CleClean-Website
+  branch: main
+```
+
+The direct GitHub backend requires each editor to log in with GitHub and have write access to the repository. Git Gateway is the recommended setup when you want to invite editors without giving them direct GitHub repository access.
+
 ## Booking automation
 
 The booking form posts to Netlify Functions and uses Netlify Blobs to store appointment requests. It sends:

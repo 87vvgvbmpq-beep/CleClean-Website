@@ -1,0 +1,63 @@
+{
+  "services": [
+    {
+      "name": "Interior Car Detailing",
+      "price": "Starting at $120",
+      "duration": "2-4 hours",
+      "shortDescription": "A focused interior reset for daily drivers, family SUVs, pet hair, dust, crumbs, and stained high-touch areas.",
+      "fullDescription": "Interior detailing includes vacuuming, crevice cleaning, carpet and mat attention, seat cleaning, dashboard wipe-down, vents, cup holders, door panels, and interior glass.",
+      "features": [
+        "Deep vacuum and crevice cleaning",
+        "Dashboard, console, vents, and cup holders",
+        "Carpet and floor mat cleaning",
+        "Interior glass wipe-down"
+      ],
+      "image": "assets/interior-detail-after.jpg",
+      "active": true
+    },
+    {
+      "name": "Full-Service Auto Detailing",
+      "price": "Starting at $220",
+      "duration": "4-6 hours",
+      "shortDescription": "The most complete package for drivers who want the inside and outside cleaned in one appointment.",
+      "fullDescription": "A complete reset with interior deep cleaning plus exterior wash, wheels, tires, door jambs, paint-safe drying, and a crisp finishing shine.",
+      "features": [
+        "Interior and exterior detail",
+        "Door jambs, wheels, tires, and glass",
+        "Paint-safe wash and drying process",
+        "Best option before sale, trip, or seasonal reset"
+      ],
+      "image": "assets/red-suv-exterior-detail.jpg",
+      "active": true
+    },
+    {
+      "name": "Exterior Detailing and Ceramic Services",
+      "price": "Starting at $140",
+      "duration": "2-5 hours",
+      "shortDescription": "Exterior cleaning, gloss enhancement, and ceramic service options for paint that needs a sharper finish.",
+      "fullDescription": "Exterior work can include foam pre-soak, contact wash, wheels, tire dressing, bug and grime removal, glass, gloss enhancement, and ceramic service options.",
+      "features": [
+        "Foam wash process",
+        "Wheel and tire cleaning",
+        "Bug and road grime removal",
+        "Gloss enhancement and ceramic options"
+      ],
+      "image": "assets/paint-gloss-detail.jpg",
+      "active": true
+    },
+    {
+      "name": "Carpet Shampoo",
+      "price": "Starting at $75",
+      "duration": "1-2 hours",
+      "shortDescription": "Targeted carpet and mat cleaning for spills, grime, salt, and ground-in everyday mess.",
+      "fullDescription": "Carpet shampoo can be added to interior or full-service appointments when carpets and mats need extra attention beyond a standard vacuum.",
+      "features": [
+        "Carpet and floor mat treatment",
+        "Spot-focused cleaning",
+        "Great for winter salt and spills"
+      ],
+      "image": "assets/interior-detail-before.jpg",
+      "active": true
+    }
+  ]
+}
