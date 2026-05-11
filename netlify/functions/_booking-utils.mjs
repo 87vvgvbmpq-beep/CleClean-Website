@@ -296,15 +296,18 @@ export const sendEmail = async ({ to, subject, html, text, replyTo, idempotencyK
 export const sendNewBookingEmails = async (booking, baseUrl) => {
   const confirmUrl = manageBookingUrl(baseUrl, booking, "confirmed");
   const cancelUrl = manageBookingUrl(baseUrl, booking, "cancelled");
-  const replyUrl = `mailto:${booking.customer.email}?subject=${encodeURIComponent(`Re: Cleveland Clean booking request for ${booking.service}`)}&body=${encodeURIComponent(`Hi ${booking.customer.name},\n\nThanks for reaching out to Cleveland Clean. `)}`;
+  const replySubject = `Re: Cleveland Clean booking request for ${booking.service}`;
+  const replyBody = `Hi ${booking.customer.name},\n\nThanks for reaching out to Cleveland Clean. `;
+  const mailtoReplyUrl = `mailto:${booking.customer.email}?subject=${encodeURIComponent(replySubject)}&body=${encodeURIComponent(replyBody)}`;
+  const gmailReplyUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(booking.customer.email)}&su=${encodeURIComponent(replySubject)}&body=${encodeURIComponent(replyBody)}`;
   const adminHtml = emailLayout(
     "New booking request",
     `
       <p>A new detailing request came in from the website.</p>
       ${detailsHtml(booking)}
-      <p style="margin: 18px 0 0;">Use the reply button below, or reply to this email, to message ${escapeHtml(booking.customer.name)} directly.</p>
+      <p style="margin: 18px 0 0;">Use the Gmail reply button below, or reply to this email, to message ${escapeHtml(booking.customer.name)} directly.</p>
       <p style="margin: 22px 0 0;">
-        <a href="${escapeHtml(replyUrl)}" style="background:#2f5f9f;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;">Reply to customer</a>
+        <a href="${escapeHtml(gmailReplyUrl)}" style="background:#2f5f9f;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;">Reply in Gmail</a>
         <a href="${confirmUrl}" style="background:#1d5f4a;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;margin-left:8px;">Confirm booking</a>
         <a href="${cancelUrl}" style="background:#ad2f25;color:#fff;padding:12px 16px;border-radius:6px;text-decoration:none;font-weight:700;margin-left:8px;">Cancel request</a>
       </p>
@@ -323,7 +326,7 @@ export const sendNewBookingEmails = async (booking, baseUrl) => {
     to: getAdminEmails(),
     subject: `New booking request: ${booking.service}`,
     html: adminHtml,
-    text: `New booking request\n\n${detailsText(booking)}\n\nReply to customer: ${replyUrl}\nOr reply to this email to message ${booking.customer.name} directly.\n\nConfirm: ${confirmUrl}\nCancel: ${cancelUrl}`,
+    text: `New booking request\n\n${detailsText(booking)}\n\nReply in Gmail: ${gmailReplyUrl}\nMail app reply: ${mailtoReplyUrl}\nOr reply to this email to message ${booking.customer.name} directly.\n\nConfirm: ${confirmUrl}\nCancel: ${cancelUrl}`,
     replyTo: booking.customer.email,
     idempotencyKey: `${booking.id}-admin-new`
   });
