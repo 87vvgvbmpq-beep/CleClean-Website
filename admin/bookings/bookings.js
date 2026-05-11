@@ -31,12 +31,54 @@ const escapeHtml = (value) => {
     .replace(/'/g, "&#039;");
 };
 
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "full",
+  timeZone: "UTC"
+});
+
+const timeFormatter = new Intl.DateTimeFormat("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "UTC"
+});
+
+const timestampFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "full",
+  timeStyle: "short",
+  timeZone: "America/New_York"
+});
+
+const formatTimestamp = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : timestampFormatter.format(date);
+};
+
 const formatDateTime = (booking) => {
+  if (booking.formattedDateTime) {
+    return booking.formattedDateTime;
+  }
+
   if (!booking.date && !booking.time) {
     return "No time provided";
   }
 
-  return [booking.date, booking.time].filter(Boolean).join(" at ");
+  const dateMatch = String(booking.date || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const timeMatch = String(booking.time || "").match(/^(\d{1,2}):(\d{2})/);
+
+  if (!dateMatch) {
+    return [booking.date, booking.time].filter(Boolean).join(" at ");
+  }
+
+  const date = new Date(Date.UTC(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]), 12));
+  const formattedDate = dateFormatter.format(date);
+
+  if (!timeMatch) {
+    return formattedDate;
+  }
+
+  const time = new Date(Date.UTC(2000, 0, 1, Number(timeMatch[1]), Number(timeMatch[2])));
+  return `${formattedDate} at ${timeFormatter.format(time)}`;
 };
 
 const showToast = (message, isError = false) => {
@@ -114,6 +156,26 @@ const detailRow = (label, value) => `
   </div>
 `;
 
+const renderMessages = (messages = []) => {
+  if (!messages.length) {
+    return `
+      <div class="message-empty">
+        <p>No messages sent yet.</p>
+      </div>
+    `;
+  }
+
+  return messages.map((message) => `
+    <article class="message-item">
+      <div class="message-meta">
+        <strong>${escapeHtml(message.subject || "Customer message")}</strong>
+        <span>${escapeHtml(message.formattedCreatedAt || formatTimestamp(message.createdAt))}</span>
+      </div>
+      <p>${escapeHtml(message.body)}</p>
+    </article>
+  `).join("");
+};
+
 const renderDetails = () => {
   const booking = state.bookings.find((item) => item.id === state.selectedId);
 
@@ -145,12 +207,27 @@ const renderDetails = () => {
     <div class="details-body">
       ${detailRow("Email", booking.email)}
       ${detailRow("Phone", booking.phone)}
-      ${detailRow("Service", booking.service)}
+      ${detailRow("Requested service", booking.service)}
+      ${detailRow("Requested date/time", formatDateTime(booking))}
+      ${detailRow("Current status", statusLabel(booking.status))}
       ${detailRow("Vehicle", booking.vehicle)}
       ${detailRow("Address", `${booking.address}, ${booking.city}`)}
       ${detailRow("Notes", booking.notes)}
-      ${detailRow("Created", booking.createdAt)}
-      ${detailRow("Updated", booking.updatedAt)}
+      ${detailRow("Created", booking.formattedCreatedAt || formatTimestamp(booking.createdAt))}
+      ${detailRow("Updated", booking.formattedUpdatedAt || formatTimestamp(booking.updatedAt))}
+    </div>
+    <div class="message-panel">
+      <div class="message-history">
+        <h3>Message history</h3>
+        ${renderMessages(booking.messages)}
+      </div>
+      <form class="message-form" data-message-form>
+        <label>
+          <span>Message customer</span>
+          <textarea name="message" rows="5" required></textarea>
+        </label>
+        <button type="submit">Send message</button>
+      </form>
     </div>
   `;
 };
@@ -202,6 +279,29 @@ const updateStatus = async (status) => {
   renderRows();
   renderDetails();
   showToast(`Booking ${status}.`);
+};
+
+const sendMessage = async (body) => {
+  const booking = state.bookings.find((item) => item.id === state.selectedId);
+
+  if (!booking) {
+    return;
+  }
+
+  const payload = await apiFetch(`/api/bookings/${encodeURIComponent(booking.id)}/messages`, {
+    method: "POST",
+    body: JSON.stringify({ body })
+  });
+  const updatedBooking = payload.booking;
+  const index = state.bookings.findIndex((item) => item.id === updatedBooking.id);
+
+  if (index !== -1) {
+    state.bookings[index] = updatedBooking;
+  }
+
+  renderRows();
+  renderDetails();
+  showToast("Message sent.");
 };
 
 const authorize = async (token) => {
@@ -257,6 +357,33 @@ detailsPanel.addEventListener("click", async (event) => {
 
   try {
     await updateStatus(button.dataset.nextStatus);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+detailsPanel.addEventListener("submit", async (event) => {
+  const form = event.target.closest("[data-message-form]");
+
+  if (!form) {
+    return;
+  }
+
+  event.preventDefault();
+  const message = String(new FormData(form).get("message") || "").trim();
+  const button = form.querySelector("button[type='submit']");
+
+  if (!message) {
+    showToast("Message customer cannot be empty.", true);
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    await sendMessage(message);
   } catch (error) {
     showToast(error.message, true);
   } finally {

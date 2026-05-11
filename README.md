@@ -46,7 +46,7 @@ Create a D1 database in Cloudflare, then bind it to this Pages project:
 4. Add a binding named `BOOKINGS_DB` and select the D1 database.
 5. Open the D1 console and run the SQL in `schema/bookings.sql`.
 
-The Pages Functions also run `CREATE TABLE IF NOT EXISTS`, but running `schema/bookings.sql` once makes the setup explicit.
+The Pages Functions also run `CREATE TABLE IF NOT EXISTS`, but running `schema/bookings.sql` once makes the setup explicit. If the D1 database already exists from an earlier deployment, re-run `schema/bookings.sql` or migrate it so the `booking_messages` table and its index are added.
 
 Set these Cloudflare Pages environment variables:
 
@@ -60,15 +60,16 @@ The admin notification sets the customer's email as the reply-to address, so the
 
 ### Booking admin
 
-Visit `/admin/bookings` after deployment and enter `BOOKING_ADMIN_TOKEN`. The booking dashboard can view all requests, filter by `pending`, `confirmed`, `declined`, or `completed`, open booking details, and update status.
+Visit `/admin/bookings` after deployment and enter `BOOKING_ADMIN_TOKEN`. The booking dashboard can view all requests, filter by `pending`, `confirmed`, `declined`, or `completed`, open booking details, update status, and send customer messages. Previous outbound customer messages are stored in D1 and shown in each booking detail view.
 
 Protected booking API routes:
 
 - `POST /api/create-booking`: public booking form endpoint. Creates a D1 booking with `pending` status.
 - `GET /api/bookings`: protected admin endpoint. Requires `Authorization: Bearer BOOKING_ADMIN_TOKEN`.
 - `PATCH /api/bookings/:id`: protected admin endpoint. Accepts `{ "status": "pending" | "confirmed" | "declined" | "completed" }`.
+- `POST /api/bookings/:id/messages`: protected admin endpoint. Accepts `{ "body": "Message to customer" }`, sends the email through Resend, then stores it in `booking_messages`.
 
-When an admin changes a booking to `confirmed` or `declined`, the customer is emailed through Resend using the existing booking email environment variables.
+When an admin changes a booking to `confirmed` or `declined`, the customer is emailed through Resend using the existing booking email environment variables. Admin-written customer messages use `BOOKING_FROM_EMAIL` as the sender and `BOOKING_REPLY_TO_EMAIL` as the reply-to address.
 
 ### Gmail reply setup
 

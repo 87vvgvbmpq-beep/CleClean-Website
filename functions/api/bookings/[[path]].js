@@ -1,18 +1,24 @@
 import {
+  createBookingMessage,
   ensureBookingsTable,
   getBooking,
   isValidStatus,
   jsonResponse,
   listBookings,
+  normalizeBookingMessage,
   requireAdminRequest,
   requireBookingsDatabase,
   updateBookingStatus
 } from "../../../lib/booking-core.js";
-import { sendCustomerStatusEmail } from "../../../lib/resend.js";
+import {
+  makeCustomerMessageSubject,
+  sendCustomerMessageEmail,
+  sendCustomerStatusEmail
+} from "../../../lib/resend.js";
 
 const adminHeaders = {
   "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Booking-Admin-Token",
-  "Access-Control-Allow-Methods": "GET, PATCH, OPTIONS"
+  "Access-Control-Allow-Methods": "GET, PATCH, POST, OPTIONS"
 };
 
 const readJson = async (request) => {
@@ -23,12 +29,11 @@ const readJson = async (request) => {
   }
 };
 
-const getRouteId = (params) => {
+const getRouteParts = (params) => {
   const path = params?.path;
-  const parts = Array.isArray(path)
+  return Array.isArray(path)
     ? path
     : String(path || "").split("/").filter(Boolean);
-  return parts[0] || "";
 };
 
 const listHandler = async (request, env) => {
@@ -78,6 +83,41 @@ const patchHandler = async (request, env, id) => {
   return jsonResponse({ booking }, 200, adminHeaders);
 };
 
+const messageHandler = async (request, env, id) => {
+  if (!id) {
+    return jsonResponse({ message: "Booking id is required." }, 400, adminHeaders);
+  }
+
+  if (!env.RESEND_API_KEY) {
+    return jsonResponse({ message: "RESEND_API_KEY is required before sending customer messages." }, 503, adminHeaders);
+  }
+
+  const body = await readJson(request);
+  const { message, errors } = normalizeBookingMessage(body);
+
+  if (errors.length) {
+    return jsonResponse({ message: errors.join(" ") }, 400, adminHeaders);
+  }
+
+  const db = requireBookingsDatabase(env);
+  await ensureBookingsTable(db);
+  const booking = await getBooking(db, id);
+
+  if (!booking) {
+    return jsonResponse({ message: "Booking not found." }, 404, adminHeaders);
+  }
+
+  message.subject = message.subject || makeCustomerMessageSubject(booking);
+  await sendCustomerMessageEmail(env, booking, message);
+  const savedMessage = await createBookingMessage(db, id, message);
+  const updatedBooking = await getBooking(db, id);
+
+  return jsonResponse({
+    message: savedMessage,
+    booking: updatedBooking
+  }, 200, adminHeaders);
+};
+
 export const onRequest = async ({ request, env, params }) => {
   if (request.method === "OPTIONS") {
     return new Response(null, {
@@ -93,12 +133,20 @@ export const onRequest = async ({ request, env, params }) => {
   }
 
   try {
+    const routeParts = getRouteParts(params);
+    const routeId = routeParts[0] || "";
+    const routeAction = routeParts[1] || "";
+
     if (request.method === "GET") {
       return listHandler(request, env);
     }
 
-    if (request.method === "PATCH") {
-      return patchHandler(request, env, getRouteId(params));
+    if (request.method === "PATCH" && !routeAction) {
+      return patchHandler(request, env, routeId);
+    }
+
+    if (request.method === "POST" && routeAction === "messages") {
+      return messageHandler(request, env, routeId);
     }
 
     return jsonResponse({ message: "Method not allowed." }, 405, adminHeaders);
