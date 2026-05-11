@@ -2,9 +2,11 @@
 
 Open `index.html` in a browser to preview the site.
 
-## Editing services in Decap CMS
+## Editing content in Decap CMS
 
-Services and packages live in `content/services.json` and are editable at `/admin/` after the site is deployed on Netlify. The homepage loads active services from that JSON file and uses the same list for the booking form service dropdown. If the content file cannot load, the original hardcoded service cards remain visible as a fallback.
+Services and packages live in `content/services.json` and are editable at `/admin/` after the site is deployed on Netlify. The homepage loads active services from that JSON file. If the content file cannot load, the original hardcoded service cards remain visible as a fallback.
+
+The Google Appointment Schedule booking link lives in `content/booking.json` and is editable in Decap under **Site Content > Appointment Booking**. Paste the public Google Calendar Appointment Schedule URL there after the schedule is created.
 
 The CMS is configured in `admin/config.yml` to use Decap CMS with Netlify Identity and Git Gateway:
 
@@ -12,7 +14,7 @@ The CMS is configured in `admin/config.yml` to use Decap CMS with Netlify Identi
 2. Enable Identity, then set registration to **Invite only** unless you intentionally want open registration.
 3. Under Identity services, enable **Git Gateway** and connect it to this GitHub repository.
 4. Invite editor users from the Identity panel.
-5. Visit `/admin/`, log in, edit **Site Content > Services and Packages**, and publish.
+5. Visit `/admin/`, log in, edit **Site Content > Services and Packages** or **Appointment Booking**, and publish.
 
 Published CMS edits commit to the `main` branch through Git Gateway. Because the site is connected to GitHub on Netlify, each CMS commit triggers a normal Netlify redeploy.
 
@@ -27,38 +29,21 @@ backend:
 
 The direct GitHub backend requires each editor to log in with GitHub and have write access to the repository. Git Gateway is the recommended setup when you want to invite editors without giving them direct GitHub repository access.
 
-## Booking automation
+## Booking setup
 
-The booking form posts to Netlify Functions and uses Netlify Blobs to store appointment requests. It sends:
+The website no longer uses custom Netlify Functions, service-account credentials, or Resend to book detailing appointments. The booking section embeds or links to a Google Calendar Appointment Schedule instead.
 
-- available appointment times from the Google Calendar named `Detailing`
-- immediate confirmed-booking emails to admins and the customer
-- customer confirmation/cancellation emails from admin email links
-- hourly admin reminders for upcoming bookings
-- a post-service customer review follow-up after confirmed appointments
+Set up the schedule in Google Calendar:
 
-Create availability in Google Calendar by adding timed events on the `Detailing` calendar with titles that start with `Available.`. When a customer books a slot, the function changes that event title to `Booked - [customer name]` by default.
+1. On a computer, open Google Calendar and create or edit an **Appointment schedule**.
+2. Add Brendon's partner under **Co-hosts**.
+3. Under **Calendars**, turn on **Check calendars for availability**.
+4. Include the co-host calendars in the availability check. Google notes that co-host availability is not checked by default, so this must be enabled explicitly.
+5. Configure the Google booking form, confirmation emails, and reminders inside the Appointment Schedule settings.
+6. In Google Calendar, open the schedule's sharing options and copy either the booking page link or the inline booking page embed URL.
+7. Paste the public appointment schedule URL into `content/booking.json`, or update it through `/admin/` in Decap CMS.
 
-Deploy on Netlify and set these environment variables:
-
-- `RESEND_API_KEY`: Resend API key used for transactional email.
-- `BOOKING_FROM_EMAIL`: verified sender, such as `Cleveland Clean <bookings@clevelandcleandetailing.com>`.
-- `BOOKING_ADMIN_EMAILS`: comma-separated admin inboxes. Set to `bookings@clevelandcleandetailing.com`.
-- `BOOKING_REPLY_TO_EMAIL`: inbox for customer replies. Set to `bookings@clevelandcleandetailing.com`.
-- `SITE_URL`: production website URL used for admin confirm/cancel links.
-- `BOOKING_TIME_ZONE`: optional; defaults to `America/New_York`.
-- `BOOKING_ADMIN_REMINDER_HOURS`: optional comma-separated reminder windows. Defaults to `24,2`.
-- `BOOKING_CUSTOMER_FOLLOWUP_HOURS`: optional post-appointment follow-up delay. Defaults to `24`.
-- `BOOKING_REVIEW_URL`: optional Google review URL. Defaults to the existing Google Maps link.
-- `GOOGLE_SERVICE_ACCOUNT_EMAIL`: Google service account client email.
-- `GOOGLE_PRIVATE_KEY`: Google service account private key. Keep the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines; Netlify can store newlines or escaped `\n` line breaks.
-- `GOOGLE_CALENDAR_NAME`: optional Google Calendar name. Defaults to `Detailing`.
-- `GOOGLE_CALENDAR_ID`: optional calendar ID override if the service account cannot find the calendar by name.
-- `GOOGLE_AVAILABLE_EVENT_PREFIX`: optional title prefix for open slots. Defaults to `Available.`.
-- `GOOGLE_BOOKING_LOOKAHEAD_DAYS`: optional number of days to show availability. Defaults to `30`.
-- `GOOGLE_BOOKING_EVENT_ACTION`: optional; use `update` to rename the availability event or `delete` to remove it after booking. Defaults to `update`.
-
-Share the `Detailing` Google Calendar with the service account email and grant permission to make changes to events.
+After this is configured, the website only sends customers into Google Calendar's booking page. The actual rule that both Brendon and his partner must be available is enforced by Google Appointment Schedule co-host availability checking, not by custom website code.
 
 ### Gmail reply setup
 

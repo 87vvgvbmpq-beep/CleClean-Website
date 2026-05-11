@@ -22,33 +22,18 @@ comparisons.forEach((comparison) => {
   setPosition(range.value);
 });
 
-const bookingForm = document.querySelector("[data-booking-form]");
-const bookingFallbackEmail = "bookings@clevelandcleandetailing.com";
-const bookingFallbackPhone = "(216) 659-1510";
-const availabilityEndpoint = "/.netlify/functions/get-availability";
 const servicesEndpoint = "/content/services.json";
+const appointmentSettingsEndpoint = "/content/booking.json";
 const servicesGridSelector = "[data-services-grid], .service-grid";
 const servicesSelectSelector = "[data-services-select], select[name='service']";
 
-const buildBookingEmail = (payload) => {
-  const subject = `Booking request from ${payload.name || "website visitor"}`;
-  const body = [
-    "New booking request from the Cleveland Clean website:",
-    "",
-    `Name: ${payload.name || ""}`,
-    `Email: ${payload.email || ""}`,
-    `Phone: ${payload.phone || ""}`,
-    `Service: ${payload.service || ""}`,
-    `Vehicle: ${payload.vehicle || ""}`,
-    `Selected slot: ${payload.slotLabel || ""}`,
-    `Preferred date: ${payload.date || ""}`,
-    `Preferred time: ${payload.time || ""}`,
-    `Address: ${payload.address || ""}`,
-    `City: ${payload.city || ""}`,
-    `Notes: ${payload.notes || "None"}`
-  ].join("\n");
-
-  return `mailto:${bookingFallbackEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+const defaultAppointmentSettings = {
+  appointmentScheduleUrl: "",
+  embed: true,
+  heading: "Choose your appointment time",
+  description: "Use the Google booking calendar to pick an open detailing appointment. Google handles the confirmation and reminder emails after you book.",
+  buttonLabel: "Open Booking Calendar",
+  statusText: "Booking calendar setup required. Add the Google Appointment Schedule link in Decap CMS."
 };
 
 const normalizeServices = (data) => {
@@ -185,7 +170,170 @@ const loadServices = async () => {
   }
 };
 
-loadServices();
+const isGoogleAppointmentScheduleUrl = (value) => {
+  try {
+    const url = new URL(value);
+
+    return url.hostname === "calendar.google.com"
+      && url.pathname.startsWith("/calendar/appointments/schedules/");
+  } catch {
+    return false;
+  }
+};
+
+const renderAppointmentBooking = (settings) => {
+  const booking = ensureAppointmentBookingPanel();
+
+  if (!booking) {
+    return;
+  }
+
+  const options = {
+    ...defaultAppointmentSettings,
+    ...settings
+  };
+  const link = booking.querySelector("[data-appointment-link]");
+  const frame = booking.querySelector("[data-appointment-frame]");
+  const heading = booking.querySelector("[data-appointment-heading]");
+  const description = booking.querySelector("[data-appointment-description]");
+  const status = booking.querySelector("[data-appointment-status]");
+  const hasScheduleUrl = isGoogleAppointmentScheduleUrl(options.appointmentScheduleUrl);
+
+  if (heading) heading.textContent = options.heading;
+  if (description) description.textContent = options.description;
+
+  if (link) {
+    link.textContent = hasScheduleUrl ? options.buttonLabel : "Call to Book";
+    link.href = hasScheduleUrl ? options.appointmentScheduleUrl : "tel:+12166591510";
+
+    if (hasScheduleUrl) {
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.removeAttribute("aria-disabled");
+    } else {
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      link.setAttribute("aria-disabled", "true");
+    }
+  }
+
+  if (status) {
+    status.textContent = hasScheduleUrl
+      ? options.statusText
+      : defaultAppointmentSettings.statusText;
+    status.classList.toggle("error", !hasScheduleUrl);
+  }
+
+  if (!frame) {
+    return;
+  }
+
+  frame.replaceChildren();
+
+  if (hasScheduleUrl && options.embed !== false) {
+    const iframe = document.createElement("iframe");
+    iframe.src = options.appointmentScheduleUrl;
+    iframe.title = "Google Calendar appointment schedule";
+    iframe.loading = "lazy";
+    frame.append(iframe);
+  }
+};
+
+const ensureAppointmentStyles = () => {
+  if (document.querySelector("[data-appointment-booking-styles]")) {
+    return;
+  }
+
+  const styles = document.createElement("style");
+  styles.dataset.appointmentBookingStyles = "";
+  styles.textContent = `
+    .appointment-card{display:grid;gap:22px;padding:clamp(22px,4vw,34px);border:1px solid rgba(29,95,74,.18);border-radius:8px;background:var(--surface);box-shadow:var(--shadow)}
+    .appointment-copy{display:grid;gap:16px}
+    .appointment-copy h3,.appointment-copy p,.appointment-checks{margin:0}
+    .appointment-copy p:not(.eyebrow),.appointment-checks{color:var(--muted)}
+    .appointment-checks{padding-left:18px;font-weight:700}
+    .appointment-frame-wrap{overflow:hidden;min-height:0;border-radius:8px;background:#fbfcfa}
+    .appointment-frame-wrap iframe{display:block;width:100%;min-height:min(720px,86vh);border:0}
+    @media (max-width:520px){.appointment-card{padding:22px}}
+  `;
+  document.head.append(styles);
+};
+
+const ensureAppointmentBookingPanel = () => {
+  const existing = document.querySelector("[data-appointment-booking]");
+
+  if (existing) {
+    ensureAppointmentStyles();
+    return existing;
+  }
+
+  const form = document.querySelector("[data-booking-form]");
+
+  if (!form) {
+    return null;
+  }
+
+  const intro = form.closest(".booking-shell")?.querySelector(".booking-intro");
+
+  if (intro) {
+    const title = intro.querySelector("h2");
+    const copy = intro.querySelector("p:not(.eyebrow)");
+
+    if (title) title.textContent = "Book a time that works for both detailers.";
+    if (copy) copy.textContent = "Appointment times are managed through Google Calendar. Only times that pass the co-host availability check should appear on the booking page.";
+  }
+
+  const booking = document.createElement("div");
+  booking.className = "appointment-card";
+  booking.dataset.appointmentBooking = "";
+  booking.innerHTML = `
+    <div class="appointment-copy">
+      <p class="eyebrow">Google Calendar booking</p>
+      <h3 data-appointment-heading>Choose your appointment time</h3>
+      <p data-appointment-description>Use the Google booking calendar to pick an open detailing appointment. Google handles the confirmation and reminder emails after you book.</p>
+      <ul class="appointment-checks">
+        <li>Shows bookable times from the Google Appointment Schedule.</li>
+        <li>Requires Brendon and his partner as co-hosts.</li>
+        <li>Co-host calendar availability checking must be enabled in Google Calendar.</li>
+      </ul>
+      <div class="form-actions">
+        <a class="button primary" href="#booking" data-appointment-link target="_blank" rel="noopener">Open Booking Calendar</a>
+        <a class="button ghost" href="tel:+12166591510">Call Instead</a>
+      </div>
+      <p class="form-status" role="status" aria-live="polite" data-appointment-status>Booking calendar setup required. Add the Google Appointment Schedule link in Decap CMS.</p>
+    </div>
+    <div class="appointment-frame-wrap" data-appointment-frame aria-label="Google appointment schedule"></div>
+  `;
+
+  form.replaceWith(booking);
+  ensureAppointmentStyles();
+
+  return booking;
+};
+
+const loadAppointmentBooking = async () => {
+  if (!document.querySelector("[data-appointment-booking]") && !document.querySelector("[data-booking-form]")) {
+    return;
+  }
+
+  try {
+    const response = await fetch(appointmentSettingsEndpoint, {
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+    const settings = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Appointment booking settings could not be loaded.");
+    }
+
+    renderAppointmentBooking(settings);
+  } catch (error) {
+    console.warn(error);
+    renderAppointmentBooking(defaultAppointmentSettings);
+  }
+};
 
 const initNetlifyIdentityRedirect = () => {
   if (!window.netlifyIdentity) {
@@ -213,262 +361,6 @@ const loadNetlifyIdentityWidget = () => {
   document.head.append(script);
 };
 
+loadServices();
+loadAppointmentBooking();
 loadNetlifyIdentityWidget();
-
-if (bookingForm) {
-  const status = bookingForm.querySelector("[data-booking-status]");
-  const submitButton = bookingForm.querySelector("button[type='submit']");
-  const ensureSlotStyles = () => {
-    if (document.querySelector("[data-booking-slot-styles]")) {
-      return;
-    }
-
-    const styles = document.createElement("style");
-    styles.dataset.bookingSlotStyles = "";
-    styles.textContent = `
-      .booking-slot-field{display:grid;gap:12px;margin:0;padding:0;border:0;min-width:0}
-      .booking-slot-field legend{margin:0 0 7px;color:var(--muted);text-transform:uppercase;font-size:.76rem;font-weight:800}
-      .slot-list{display:grid;gap:10px}
-      .slot-list>p{margin:0;color:var(--muted);font-weight:700}
-      .slot-option{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;min-height:58px;padding:12px;border:1px solid var(--line);border-radius:6px;background:#fbfcfa}
-      .slot-option input{grid-row:span 2;width:18px;min-width:18px;min-height:18px;accent-color:var(--green)}
-      .slot-option span{font-weight:900}
-      .slot-option small{color:var(--muted);font-weight:700}
-    `;
-    document.head.append(styles);
-  };
-  const ensureSlotPicker = () => {
-    const existingSlots = bookingForm.querySelector("[data-booking-slots]");
-    const existingDate = bookingForm.querySelector("[data-booking-date]") || bookingForm.querySelector("input[name='date']");
-    const existingTime = bookingForm.querySelector("[data-booking-time]") || bookingForm.querySelector("input[name='time']");
-
-    if (existingSlots) {
-      return {
-        slots: existingSlots,
-        date: existingDate,
-        time: existingTime
-      };
-    }
-
-    if (!existingDate || !existingTime) {
-      return {
-        slots: null,
-        date: existingDate,
-        time: existingTime
-      };
-    }
-
-    const fieldset = document.createElement("fieldset");
-    fieldset.className = "booking-slot-field wide-field";
-    const legend = document.createElement("legend");
-    legend.textContent = "Available Appointment Times";
-    const slotList = document.createElement("div");
-    slotList.className = "slot-list";
-    slotList.dataset.bookingSlots = "";
-    const loading = document.createElement("p");
-    loading.textContent = "Loading available times...";
-    slotList.append(loading);
-
-    existingDate.type = "hidden";
-    existingTime.type = "hidden";
-    existingDate.dataset.bookingDate = "";
-    existingTime.dataset.bookingTime = "";
-    existingDate.removeAttribute("required");
-    existingTime.removeAttribute("required");
-
-    const dateLabel = existingDate.closest("label");
-    const timeLabel = existingTime.closest("label");
-    fieldset.append(legend, existingDate, existingTime, slotList);
-
-    if (dateLabel) {
-      dateLabel.replaceWith(fieldset);
-    } else {
-      bookingForm.querySelector(".form-grid")?.prepend(fieldset);
-    }
-
-    if (timeLabel && timeLabel !== dateLabel) {
-      timeLabel.remove();
-    }
-
-    return {
-      slots: slotList,
-      date: existingDate,
-      time: existingTime
-    };
-  };
-  const slotPicker = ensureSlotPicker();
-  const dateInput = slotPicker.date;
-  const timeInput = slotPicker.time;
-  const slotsContainer = slotPicker.slots;
-
-  ensureSlotStyles();
-
-  if (submitButton) {
-    submitButton.textContent = "Book Selected Time";
-  }
-
-  const clearSelectedSlot = () => {
-    if (dateInput) dateInput.value = "";
-    if (timeInput) timeInput.value = "";
-  };
-
-  const setSelectedSlot = (slotInput) => {
-    if (dateInput) dateInput.value = slotInput.dataset.date || "";
-    if (timeInput) timeInput.value = slotInput.dataset.time || "";
-  };
-
-  const renderSlots = (slots) => {
-    if (!slotsContainer || !submitButton) {
-      return;
-    }
-
-    slotsContainer.replaceChildren();
-    clearSelectedSlot();
-
-    if (!slots.length) {
-      const emptyMessage = document.createElement("p");
-      emptyMessage.textContent = "No available appointment times are posted right now.";
-      slotsContainer.append(emptyMessage);
-      submitButton.disabled = true;
-      return;
-    }
-
-    slots.forEach((slot, index) => {
-      const label = document.createElement("label");
-      label.className = "slot-option";
-      const radio = document.createElement("input");
-      radio.type = "radio";
-      radio.name = "slotId";
-      radio.value = slot.id;
-      radio.required = true;
-      radio.dataset.date = slot.date || "";
-      radio.dataset.time = slot.time || "";
-      radio.dataset.label = slot.label || "";
-
-      if (index === 0) {
-        radio.checked = true;
-        setSelectedSlot(radio);
-      }
-
-      const text = document.createElement("span");
-      text.textContent = slot.label || "Available appointment";
-      const meta = document.createElement("small");
-      meta.textContent = slot.title || "Available";
-
-      label.append(radio, text, meta);
-      slotsContainer.append(label);
-    });
-
-    submitButton.disabled = false;
-  };
-
-  const loadAvailability = async () => {
-    if (!slotsContainer || !submitButton) {
-      return;
-    }
-
-    submitButton.disabled = true;
-    slotsContainer.replaceChildren();
-    const loadingMessage = document.createElement("p");
-    loadingMessage.textContent = "Loading available times...";
-    slotsContainer.append(loadingMessage);
-
-    try {
-      const response = await fetch(availabilityEndpoint, {
-        headers: {
-          "Accept": "application/json"
-        }
-      });
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(result.message || "Available appointment times could not be loaded.");
-      }
-
-      renderSlots(result.slots || []);
-    } catch (error) {
-      slotsContainer.replaceChildren();
-      const errorMessage = document.createElement("p");
-      errorMessage.textContent = error.message;
-      slotsContainer.append(errorMessage);
-      clearSelectedSlot();
-      submitButton.disabled = true;
-    }
-  };
-
-  if (slotsContainer) {
-    slotsContainer.addEventListener("change", (event) => {
-      if (event.target?.matches("input[name='slotId']")) {
-        setSelectedSlot(event.target);
-      }
-    });
-
-    loadAvailability();
-  }
-
-  bookingForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    if (!status || !submitButton) {
-      bookingForm.submit();
-      return;
-    }
-
-    const formData = new FormData(bookingForm);
-    const payload = Object.fromEntries(formData.entries());
-    const selectedSlot = bookingForm.querySelector("input[name='slotId']:checked");
-
-    if (!selectedSlot) {
-      status.classList.add("error");
-      status.textContent = "Please choose an available appointment time.";
-      return;
-    }
-
-    setSelectedSlot(selectedSlot);
-
-    payload.consent = formData.get("consent") === "on";
-    payload.date = dateInput?.value || "";
-    payload.time = timeInput?.value || "";
-    payload.slotLabel = selectedSlot.dataset.label || "";
-    status.classList.remove("error");
-    status.textContent = "Booking your appointment...";
-    submitButton.disabled = true;
-
-    try {
-      const response = await fetch(bookingForm.action, {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(result.message || "The booking request could not be sent.");
-      }
-
-      bookingForm.reset();
-      clearSelectedSlot();
-
-      if (slotsContainer) {
-        loadAvailability();
-      }
-
-      status.textContent = result.message || "Appointment booked. Cleveland Clean will send confirmation soon.";
-    } catch (error) {
-      const fallbackUrl = buildBookingEmail(payload);
-      status.classList.remove("error");
-      status.textContent = "Online booking needs a quick email handoff. Your email app is opening with the request filled in.";
-      window.location.href = fallbackUrl;
-
-      setTimeout(() => {
-        status.classList.add("error");
-        status.textContent = `${error.message} If your email app did not open, please call ${bookingFallbackPhone}.`;
-      }, 1200);
-    } finally {
-      submitButton.disabled = !bookingForm.querySelector("input[name='slotId']");
-    }
-  });
-}
