@@ -174,10 +174,43 @@ const removeField = (fieldName) => {
   getFieldLabel(fieldName)?.remove();
 };
 
+const ensureWaterPowerAccessField = () => {
+  if (!bookingForm || bookingForm.querySelector("[name='water_power_access']")) {
+    return;
+  }
+
+  const accessLine = document.createElement("label");
+  accessLine.className = "consent-line";
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.name = "water_power_access";
+  checkbox.value = "yes";
+  checkbox.required = true;
+
+  const text = document.createElement("span");
+  text.textContent = "I can provide access to water and power at the service location.";
+
+  accessLine.append(checkbox, text);
+
+  const consentLine = bookingForm.querySelector(".consent-line");
+  const honeyField = bookingForm.querySelector(".honey-field");
+
+  if (consentLine) {
+    consentLine.after(accessLine);
+  } else if (honeyField) {
+    honeyField.before(accessLine);
+  } else {
+    bookingForm.append(accessLine);
+  }
+};
+
 const ensureCalServicePicker = () => {
   if (!bookingForm) {
     return;
   }
+
+  ensureWaterPowerAccessField();
 
   if (!calServiceInput) {
     calServiceInput = document.createElement("input");
@@ -289,7 +322,8 @@ const buildCalBookingUrl = (service) => {
     `Vehicle: ${payload.vehicle || ""}`,
     `Street Address: ${payload.address || ""}`,
     `City: ${payload.city || ""}`,
-    `Phone: ${payload.phone || ""}`
+    `Phone: ${payload.phone || ""}`,
+    payload.water_power_access ? "Water and power access: Confirmed" : ""
   ].filter((value) => String(value || "").trim()).join("\n");
 
   setUrlParam(url, "name", payload.name);
