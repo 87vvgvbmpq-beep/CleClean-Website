@@ -31,16 +31,16 @@
       "active": true
     },
     {
-      "name": "Paint Correction and Ceramic Services",
+      "name": "Paint Correction and Ceramic Coating",
       "price": "Starting at $300",
-      "duration": "2-5 hours",
-      "shortDescription": "Exterior cleaning, gloss enhancement, and ceramic service options for paint that needs a sharper finish.",
+      "duration": "2-8 hours",
+      "shortDescription": "Exterior cleaning, paint correction, and ceramic coating options for paint that needs a sharper finish.",
       "fullDescription": "Exterior work can include foam pre-soak, contact wash, wheels, tire dressing, bug and grime removal, glass, gloss enhancement, and ceramic service options.",
       "features": [
         "Foam wash process",
         "Wheel and tire cleaning",
         "Bug and road grime removal",
-        "Gloss enhancement and ceramic options"
+        "Paint correction and Ceramic coatings"
       ],
       "image": "assets/paint-gloss-detail.jpg",
       "active": true
