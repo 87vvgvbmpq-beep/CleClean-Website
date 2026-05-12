@@ -24,9 +24,13 @@ comparisons.forEach((comparison) => {
 
 const servicesEndpoint = "/content/services.json";
 const servicesGridSelector = "[data-services-grid], .service-grid";
-const servicesSelectSelector = "[data-services-select], select[name='service']";
 const bookingForm = document.querySelector("[data-booking-form]");
-const bookingFallbackEmail = "bookings@clevelandcleandetailing.com";
+const calUsername = "brendon-vo-ma5r9m";
+const calOrigin = "https://cal.com";
+const calProfileUrl = `${calOrigin}/${calUsername}`;
+const calEventTypesEndpoint = `https://api.cal.com/v2/event-types?username=${encodeURIComponent(calUsername)}&sortCreatedAt=asc`;
+let calServiceList = document.querySelector("[data-cal-service-list]");
+let calServiceInput = document.querySelector("[data-cal-service-input]");
 
 const normalizeServices = (data) => {
   const services = Array.isArray(data?.services) ? data.services : [];
@@ -50,27 +54,6 @@ const appendText = (parent, tagName, text, className = "") => {
 
   parent.append(element);
   return element;
-};
-
-const buildBookingEmail = (payload) => {
-  const subject = encodeURIComponent(`Booking request from ${payload.name || "website"}`);
-  const body = encodeURIComponent([
-    "New booking request",
-    "",
-    `Name: ${payload.name || ""}`,
-    `Email: ${payload.email || ""}`,
-    `Phone: ${payload.phone || ""}`,
-    `Service: ${payload.service || ""}`,
-    `Vehicle: ${payload.vehicle || ""}`,
-    `Preferred date: ${payload.date || ""}`,
-    `Preferred time: ${payload.time || ""}`,
-    `Address: ${payload.address || ""}`,
-    `City: ${payload.city || ""}`,
-    "",
-    `Notes: ${payload.notes || ""}`
-  ].join("\n"));
-
-  return `mailto:${bookingFallbackEmail}?subject=${subject}&body=${body}`;
 };
 
 const serviceCard = (service, index) => {
@@ -121,24 +104,6 @@ const renderServiceCards = (services) => {
   grid.replaceChildren(...services.map(serviceCard));
 };
 
-const renderServiceOptions = (services) => {
-  const select = document.querySelector(servicesSelectSelector);
-
-  if (!select || !services.length) {
-    return;
-  }
-
-  const selectedValue = select.value;
-  const defaultOption = new Option("Select a service", "");
-  const options = services.map((service) => new Option(service.name, service.name));
-  options.push(new Option("Not Sure Yet", "Not Sure Yet"));
-  select.replaceChildren(defaultOption, ...options);
-
-  if ([...select.options].some((option) => option.value === selectedValue)) {
-    select.value = selectedValue;
-  }
-};
-
 const ensureServiceStyles = () => {
   if (document.querySelector("[data-service-content-styles]")) {
     return;
@@ -157,8 +122,27 @@ const ensureServiceStyles = () => {
   document.head.append(styles);
 };
 
+const ensureCalServiceStyles = () => {
+  if (document.querySelector("[data-cal-service-styles]")) {
+    return;
+  }
+
+  const styles = document.createElement("style");
+  styles.dataset.calServiceStyles = "";
+  styles.textContent = `
+    .cal-service-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .cal-service-list>p{grid-column:1/-1;margin:0;color:var(--muted);font-weight:700}
+    .cal-service-option{display:grid;gap:5px;min-height:78px;width:100%;padding:14px;border:1px solid var(--line);border-radius:6px;background:#fbfcfa;color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:border-color 180ms ease,box-shadow 180ms ease,transform 180ms ease}
+    .cal-service-option span{font-weight:900}
+    .cal-service-option small,.cal-service-option em{color:var(--muted);font-size:.9rem;font-style:normal;font-weight:700}
+    .cal-service-option:hover,.cal-service-option:focus-visible{border-color:var(--green);box-shadow:0 10px 24px rgba(16,19,23,.1);outline:none;transform:translateY(-1px)}
+    @media (max-width:860px){.cal-service-list{grid-template-columns:1fr}}
+  `;
+  document.head.append(styles);
+};
+
 const loadServices = async () => {
-  if (!document.querySelector(servicesGridSelector) && !document.querySelector(servicesSelectSelector)) {
+  if (!document.querySelector(servicesGridSelector)) {
     return;
   }
 
@@ -177,9 +161,253 @@ const loadServices = async () => {
     const services = normalizeServices(data);
     ensureServiceStyles();
     renderServiceCards(services);
-    renderServiceOptions(services);
   } catch (error) {
     console.warn(error);
+  }
+};
+
+const getFieldLabel = (fieldName) => {
+  return bookingForm?.querySelector(`[name="${fieldName}"]`)?.closest("label") || null;
+};
+
+const removeField = (fieldName) => {
+  getFieldLabel(fieldName)?.remove();
+};
+
+const ensureCalServicePicker = () => {
+  if (!bookingForm) {
+    return;
+  }
+
+  if (!calServiceInput) {
+    calServiceInput = document.createElement("input");
+    calServiceInput.type = "hidden";
+    calServiceInput.name = "service";
+    calServiceInput.dataset.calServiceInput = "";
+    bookingForm.prepend(calServiceInput);
+  }
+
+  const existingServiceSelect = bookingForm.querySelector("select[name='service']");
+
+  if (existingServiceSelect) {
+    existingServiceSelect.closest("label")?.remove();
+  }
+
+  if (!calServiceList) {
+    const fieldset = document.createElement("fieldset");
+    fieldset.className = "booking-slot-field wide-field";
+    fieldset.dataset.calServiceField = "";
+
+    const legend = document.createElement("legend");
+    legend.textContent = "Choose service and book live availability";
+
+    calServiceList = document.createElement("div");
+    calServiceList.className = "cal-service-list";
+    calServiceList.dataset.calServiceList = "";
+    const loading = document.createElement("p");
+    loading.textContent = "Loading live Cal.com services...";
+    calServiceList.append(loading);
+
+    fieldset.append(legend, calServiceList);
+
+    const notesLabel = getFieldLabel("notes");
+    const timeLabel = getFieldLabel("time");
+    const formGrid = bookingForm.querySelector(".form-grid");
+
+    if (notesLabel) {
+      notesLabel.after(fieldset);
+    } else if (timeLabel) {
+      timeLabel.after(fieldset);
+    } else {
+      formGrid?.append(fieldset);
+    }
+  }
+
+  removeField("date");
+  removeField("time");
+  bookingForm.querySelector("button[type='submit']")?.remove();
+  ensureCalServiceStyles();
+};
+
+const formatDuration = (minutes) => {
+  const totalMinutes = Number(minutes);
+
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
+    return "";
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+  const parts = [];
+
+  if (hours) {
+    parts.push(`${hours} hr${hours === 1 ? "" : "s"}`);
+  }
+
+  if (remainingMinutes) {
+    parts.push(`${remainingMinutes} min`);
+  }
+
+  return parts.join(" ");
+};
+
+const normalizeCalEventTypes = (data) => {
+  const eventTypes = Array.isArray(data?.data) ? data.data : [];
+
+  return eventTypes
+    .filter((eventType) => {
+      return eventType
+        && eventType.hidden !== true
+        && eventType.bookingRequiresAuthentication !== true
+        && String(eventType.title || "").trim()
+        && String(eventType.slug || "").trim();
+    })
+    .map((eventType) => ({
+      title: String(eventType.title || "").trim(),
+      slug: String(eventType.slug || "").trim(),
+      description: String(eventType.description || "").trim(),
+      duration: formatDuration(eventType.lengthInMinutes),
+      bookingUrl: eventType.bookingUrl || `${calProfileUrl}/${eventType.slug}`
+    }));
+};
+
+const getBookingPayload = () => Object.fromEntries(new FormData(bookingForm).entries());
+
+const setUrlParam = (url, name, value) => {
+  const cleanedValue = String(value || "").trim();
+
+  if (cleanedValue) {
+    url.searchParams.set(name, cleanedValue);
+  }
+};
+
+const buildCalBookingUrl = (service) => {
+  const payload = getBookingPayload();
+  const url = new URL(service.bookingUrl);
+  const notes = [
+    payload.notes,
+    `Vehicle: ${payload.vehicle || ""}`,
+    `Street Address: ${payload.address || ""}`,
+    `City: ${payload.city || ""}`,
+    `Phone: ${payload.phone || ""}`
+  ].filter((value) => String(value || "").trim()).join("\n");
+
+  setUrlParam(url, "name", payload.name);
+  setUrlParam(url, "email", payload.email);
+  setUrlParam(url, "attendeePhoneNumber", payload.phone);
+  setUrlParam(url, "phone", payload.phone);
+  setUrlParam(url, "vehicle", payload.vehicle);
+  setUrlParam(url, "address", payload.address);
+  setUrlParam(url, "city", payload.city);
+  setUrlParam(url, "notes", notes);
+  setUrlParam(url, "utm_source", "cleveland-clean-website");
+  setUrlParam(url, "utm_medium", "booking-section");
+
+  return url;
+};
+
+const renderCalServiceMessage = (message, includeLink = false) => {
+  if (!calServiceList) {
+    return;
+  }
+
+  const paragraph = document.createElement("p");
+  paragraph.textContent = message;
+
+  if (includeLink) {
+    paragraph.append(" ");
+    const link = document.createElement("a");
+    link.href = calProfileUrl;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "Open Cal.com";
+    paragraph.append(link);
+  }
+
+  calServiceList.replaceChildren(paragraph);
+};
+
+const openCalService = (service) => {
+  if (!bookingForm.reportValidity()) {
+    return;
+  }
+
+  if (calServiceInput) {
+    calServiceInput.value = service.title;
+  }
+
+  const status = bookingForm.querySelector("[data-booking-status]");
+  const url = buildCalBookingUrl(service);
+
+  if (status) {
+    status.classList.remove("error");
+    status.textContent = `Opening live availability for ${service.title}...`;
+  }
+
+  const newWindow = window.open(url.toString(), "_blank");
+
+  if (newWindow) {
+    newWindow.opener = null;
+  } else {
+    window.location.href = url.toString();
+  }
+};
+
+const calServiceButton = (service) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "cal-service-option";
+  button.dataset.calServiceSlug = service.slug;
+
+  appendText(button, "span", service.title);
+  appendText(button, "small", service.duration || "Live availability");
+
+  if (service.description) {
+    appendText(button, "em", service.description);
+  }
+
+  button.addEventListener("click", () => {
+    openCalService(service);
+  });
+
+  return button;
+};
+
+const renderCalServices = (services) => {
+  if (!calServiceList) {
+    return;
+  }
+
+  if (!services.length) {
+    renderCalServiceMessage("No Cal.com services are currently available.", true);
+    return;
+  }
+
+  calServiceList.replaceChildren(...services.map(calServiceButton));
+};
+
+const loadCalServices = async () => {
+  if (!calServiceList) {
+    return;
+  }
+
+  try {
+    const response = await fetch(calEventTypesEndpoint, {
+      headers: {
+        "Accept": "application/json",
+        "cal-api-version": "2024-06-14"
+      }
+    });
+    const data = await response.json();
+
+    if (!response.ok || data?.status === "error") {
+      throw new Error("Cal.com services could not be loaded.");
+    }
+
+    renderCalServices(normalizeCalEventTypes(data));
+  } catch (error) {
+    console.warn(error);
+    renderCalServiceMessage("Live scheduling could not be loaded.", true);
   }
 };
 
@@ -189,59 +417,22 @@ const setupBookingForm = () => {
   }
 
   const status = bookingForm.querySelector("[data-booking-status]");
-  const submitButton = bookingForm.querySelector("button[type='submit']");
 
-  bookingForm.addEventListener("submit", async (event) => {
+  bookingForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const formData = new FormData(bookingForm);
-    const payload = Object.fromEntries(formData.entries());
-
     if (status) {
-      status.classList.remove("error");
-      status.textContent = "Sending your booking request...";
+      status.classList.add("error");
+      status.textContent = "Choose a detailing service to view live Cal.com availability.";
     }
 
-    if (submitButton) {
-      submitButton.disabled = true;
-    }
-
-    try {
-      const response = await fetch(bookingForm.action, {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(result.message || "Booking request could not be completed.");
-      }
-
-      bookingForm.reset();
-
-      if (status) {
-        status.textContent = result.message || "Booking request sent. We will follow up to confirm the appointment.";
-      }
-    } catch (error) {
-      console.warn(error);
-
-      if (status) {
-        status.classList.add("error");
-        status.textContent = "Booking request could not be completed online. Your email app will open so you can send it directly.";
-      }
-
-      window.location.href = buildBookingEmail(payload);
-    } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-      }
+    if (calServiceList) {
+      calServiceList.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   });
 };
 
 loadServices();
+ensureCalServicePicker();
+loadCalServices();
 setupBookingForm();
