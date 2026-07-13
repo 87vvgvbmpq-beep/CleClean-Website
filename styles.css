@@ -81,6 +81,12 @@ nav a {
   text-decoration: none;
 }
 
+.nav-cta {
+  padding: 9px 14px;
+  border-radius: 6px;
+  background: var(--red);
+}
+
 .hero {
   position: relative;
   min-height: 92vh;
@@ -160,6 +166,17 @@ h3 {
   color: rgba(255, 255, 255, 0.88);
 }
 
+.hero-proof {
+  margin: 18px 0 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 800;
+}
+
+.hero-proof span {
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -194,6 +211,19 @@ h3 {
   border-color: rgba(29, 95, 74, 0.38);
   color: var(--green);
   background: rgba(255, 255, 255, 0.72);
+}
+
+.button:hover,
+.button:focus-visible,
+.mobile-lead-bar a:hover,
+.mobile-lead-bar a:focus-visible {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.button,
+.mobile-lead-bar a {
+  transition: filter 160ms ease, transform 160ms ease;
 }
 
 .trust-bar {
@@ -330,6 +360,11 @@ h3 {
   font-weight: 700;
 }
 
+.service-card .service-card-cta {
+  width: 100%;
+  margin-top: auto;
+}
+
 .booking-band {
   background: #e6ebe2;
   border-top: 1px solid var(--line);
@@ -354,6 +389,15 @@ h3 {
   margin: 18px 0 0;
   color: var(--muted);
   font-size: 1.06rem;
+}
+
+.booking-benefits {
+  display: grid;
+  gap: 8px;
+  margin: 24px 0 0;
+  padding-left: 20px;
+  color: var(--green-dark);
+  font-weight: 800;
 }
 
 .booking-form {
@@ -610,6 +654,35 @@ figcaption {
   border-bottom: 1px solid var(--line);
 }
 
+.local-copy {
+  display: grid;
+  gap: 22px;
+}
+
+.service-area-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.service-area-list li {
+  padding: 8px 11px;
+  border: 1px solid rgba(29, 95, 74, 0.22);
+  border-radius: 999px;
+  background: #eef3ec;
+  color: var(--green-dark);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.local-copy .area-note {
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
 .cta {
   width: min(1180px, calc(100% - 36px));
   margin: 0 auto;
@@ -633,6 +706,16 @@ figcaption {
 .contact-panel p {
   margin: 0 0 22px;
   color: var(--muted);
+}
+
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mobile-lead-bar {
+  display: none;
 }
 
 footer {
@@ -698,6 +781,10 @@ footer p {
 }
 
 @media (max-width: 520px) {
+  body {
+    padding-bottom: 66px;
+  }
+
   .hero-content {
     width: min(100% - 28px, 790px);
     padding-bottom: 8vh;
@@ -718,5 +805,33 @@ footer p {
   .booking-form,
   .contact-panel {
     padding: 22px;
+  }
+
+  .mobile-lead-bar {
+    position: fixed;
+    z-index: 50;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: 0.75fr 0.75fr 1.5fr;
+    gap: 1px;
+    padding: 1px 1px max(1px, env(safe-area-inset-bottom));
+    background: var(--green-dark);
+    box-shadow: 0 -10px 28px rgba(16, 19, 23, 0.2);
+  }
+
+  .mobile-lead-bar a {
+    display: grid;
+    min-height: 58px;
+    place-items: center;
+    background: var(--green);
+    color: #fff;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .mobile-lead-bar .book {
+    background: var(--red);
   }
 }

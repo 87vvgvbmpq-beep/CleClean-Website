@@ -91,6 +91,21 @@ const serviceCard = (service, index) => {
     article.append(list);
   }
 
+  const bookingLink = document.createElement("a");
+  bookingLink.className = "button ghost service-card-cta";
+  bookingLink.dataset.leadAction = `service-${index + 1}`;
+
+  if (/paint|ceramic/i.test(service.name)) {
+    const message = `Hi, I'm interested in a quote for ${service.name}.`;
+    bookingLink.href = `sms:+12166591510?body=${encodeURIComponent(message)}`;
+    bookingLink.textContent = "Text for a Quote";
+  } else {
+    bookingLink.href = "#booking";
+    bookingLink.textContent = "Check Availability";
+  }
+
+  article.append(bookingLink);
+
   return article;
 };
 
@@ -373,6 +388,14 @@ const openCalService = (service) => {
   const status = bookingForm.querySelector("[data-booking-status]");
   const url = buildCalBookingUrl(service);
 
+  if (typeof window.gtag === "function") {
+    window.gtag("event", "begin_checkout", {
+      currency: "USD",
+      item_name: service.title,
+      method: "cal.com"
+    });
+  }
+
   if (status) {
     status.classList.remove("error");
     status.textContent = `Opening live availability for ${service.title}...`;
@@ -385,6 +408,21 @@ const openCalService = (service) => {
   } else {
     window.location.href = url.toString();
   }
+};
+
+const setupLeadTracking = () => {
+  document.addEventListener("click", (event) => {
+    const leadLink = event.target.closest("[data-lead-action]");
+
+    if (!leadLink || typeof window.gtag !== "function") {
+      return;
+    }
+
+    window.gtag("event", "generate_lead", {
+      lead_source: leadLink.dataset.leadAction,
+      link_url: leadLink.getAttribute("href") || ""
+    });
+  });
 };
 
 const calServiceButton = (service) => {
@@ -470,3 +508,4 @@ loadServices();
 ensureCalServicePicker();
 loadCalServices();
 setupBookingForm();
+setupLeadTracking();

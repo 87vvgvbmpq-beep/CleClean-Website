@@ -75,21 +75,21 @@ When an admin changes a booking to `confirmed` or `declined`, the customer is em
 
 To reply from `clecleandetailing@gmail.com` while sending as `bookings@clevelandcleandetailing.com`, add the bookings address in Gmail under Settings > See all settings > Accounts and Import > Send mail as > Add another email address. After verification, make `bookings@clevelandcleandetailing.com` the default sender or choose it from the From field before sending.
 
-Before publishing, replace these deployment values:
-
-- `sitemap.xml`: change `https://your-domain.com/` to the final website domain.
-- `index.html`: add the real phone number to the call/text buttons and JSON-LD schema if you want direct phone conversion.
-- `index.html`: add the final website domain as a canonical URL after the domain is connected.
+Production website values are configured for `https://clevelandcleandetailing.com/`, including the canonical URL, social-sharing URLs, sitemap, phone actions, and JSON-LD business data.
 
 SEO already included:
 
-- Cleveland-focused page title and meta description
-- Local business, service, website, and FAQ JSON-LD schema
+- North Olmsted-focused page title, meta description, and on-page copy
+- Local business, service-area, offer, website, review, and FAQ JSON-LD schema
+- Canonical URL, Open Graph metadata, robots sitemap directive, and production sitemap
+- Lead tracking for booking, call, and text actions in Google Analytics
+- Mobile call, text, and booking action bar
+- Optimized WebP images for faster mobile loading
 - Search-friendly image filenames and alt text
 - Explicit image dimensions for layout stability
 - Before-and-after interior detailing content
 - Services for interior detailing, exterior detailing, full detailing, foam wash, carpet cleaning, and gloss enhancement
-- FAQ section targeting Cleveland mobile detailing searches
+- FAQ and service-area sections targeting North Olmsted and nearby west-side communities
 - Google Reviews section with three real 5-star review quotes supplied from Google review screenshots
 
 Logo asset:

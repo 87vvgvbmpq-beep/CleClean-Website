@@ -12,7 +12,7 @@
         "Carpet and floor mat cleaning",
         "Interior glass wipe-down"
       ],
-      "image": "/assets/uploads/image.jpg",
+      "image": "/assets/uploads/image.webp",
       "active": true
     },
     {
@@ -27,7 +27,7 @@
         "Paint-safe wash and drying process",
         "Best option before sale, trip, or seasonal reset"
       ],
-      "image": "assets/red-suv-exterior-detail.jpg",
+      "image": "assets/red-suv-exterior-detail.webp",
       "active": true
     },
     {
@@ -42,7 +42,7 @@
         "Bug and road grime removal",
         "Paint correction and Ceramic coatings"
       ],
-      "image": "assets/paint-gloss-detail.jpg",
+      "image": "assets/paint-gloss-detail.webp",
       "active": true
     }
   ]
