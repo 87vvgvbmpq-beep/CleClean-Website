@@ -2,7 +2,7 @@
   "services": [
     {
       "name": "Interior Car Detailing",
-      "price": "Starting at $160",
+      "price": "Starting at $140",
       "duration": "2-4 hours",
       "shortDescription": "A focused interior reset for daily drivers, family SUVs, pet hair, dust, crumbs, and stained high-touch areas.",
       "fullDescription": "Interior detailing includes vacuuming, crevice cleaning, carpet and mat attention, seat cleaning, dashboard wipe-down, vents, cup holders, door panels, and interior glass.",
@@ -17,7 +17,7 @@
     },
     {
       "name": "Full-Service Auto Detailing",
-      "price": "Starting at $200",
+      "price": "Starting at $160",
       "duration": "4-6 hours",
       "shortDescription": "The most complete package for drivers who want the inside and outside cleaned in one appointment.",
       "fullDescription": "A complete reset with interior deep cleaning plus exterior wash, wheels, tires, door jambs, paint-safe drying, and a crisp finishing shine.",
